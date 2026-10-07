@@ -216,11 +216,22 @@ par une conversation.</h2>
           <div class="contact-details">
             <span>DJOURI DESIGNE</span>
             <p data-fr="Atelier d’architecture &amp; design intérieur" data-ar="مكتب العمارة والتصميم الداخلي">Atelier d’architecture &amp; design intérieur</p>
-            <p data-fr="Coordonnées de l’atelier à venir." data-ar="ستتوفر بيانات التواصل قريبًا.">Coordonnées de l’atelier à venir.</p>
+            <dl class="contact-channels">
+              <div>
+                <dt data-fr="Téléphone" data-ar="الهاتف">Téléphone</dt>
+                <dd><a href="tel:+213671567738" dir="ltr">0671 56 77 38</a></dd>
+                <dd><a href="tel:+213671625815" dir="ltr">0671 62 58 15</a></dd>
+              </div>
+              <div>
+                <dt data-fr="Email" data-ar="البريد الإلكتروني">Email</dt>
+                <dd><a href="mailto:djouridesigne@gmail.com" dir="ltr">djouridesigne@gmail.com</a></dd>
+              </div>
+            </dl>
+            <a class="text-link contact-location-link" data-site-link href="./contact/?lang=fr#map"><span data-fr="Nous trouver" data-ar="موقعنا">Nous trouver</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
           </div>
         </div>
-        <form class="inquiry-form">
-          <noscript><p>Activez JavaScript pour télécharger votre demande. Aucun message ne sera envoyé.</p></noscript>
+        <form class="inquiry-form" data-recipient="djouridesigne@gmail.com">
+          <noscript><p>Activez JavaScript pour préparer votre demande, ou contactez-nous directement par email ou téléphone.</p></noscript>
           <div class="form-row">
             <label><span data-fr="Votre nom" data-ar="الاسم">Votre nom</span><input name="Nom" required autocomplete="name" placeholder="Nom complet" data-placeholder-fr="Nom complet" data-placeholder-ar="الاسم الكامل"></label>
             <label><span data-fr="Votre email" data-ar="البريد الإلكتروني">Votre email</span><input type="email" name="Email" required autocomplete="email" placeholder="vous@exemple.com"></label>
@@ -233,8 +244,11 @@ par une conversation.</h2>
           </label>
           <label><span data-fr="Votre message" data-ar="الرسالة">Votre message</span><textarea name="Message" required rows="4" placeholder="Parlez-nous de votre projet…" data-placeholder-fr="Parlez-nous de votre projet…" data-placeholder-ar="حدثنا عن مشروعك…"></textarea></label>
           <div class="form-submit">
-            <p data-fr="L’envoi sera disponible après ajout de l’email de l’atelier. Vous pouvez télécharger votre demande." data-ar="سيكون الإرسال متاحًا بعد إضافة بريد المكتب. يمكنك تنزيل طلبك.">L’envoi sera disponible après ajout de l’email de l’atelier. Vous pouvez télécharger votre demande.</p>
-            <button type="submit" class="inquiry-submit" disabled><span data-fr="Préparer la demande" data-ar="إعداد الطلب">Préparer la demande</span><svg class="icon icon-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+            <p data-fr="Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande." data-ar="أعدّ رسالة بريد من النموذج ثم أرسلها من تطبيق البريد. يمكنك أيضًا تنزيل طلبك.">Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande.</p>
+            <div class="inquiry-actions">
+              <button type="submit" class="inquiry-submit" disabled><span data-fr="Préparer l’email" data-ar="إعداد البريد">Préparer l’email</span><svg class="icon icon-mail" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></button>
+              <button type="button" class="inquiry-submit inquiry-download" data-download-inquiry disabled><span data-fr="Télécharger la demande" data-ar="تنزيل الطلب">Télécharger la demande</span><svg class="icon icon-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+            </div>
           </div>
           <p data-fr="Votre demande a été téléchargée. Aucun message n’a été envoyé." data-ar="تم تنزيل طلبك. لم يتم إرسال أي رسالة." role="status" hidden>Votre demande a été téléchargée. Aucun message n’a été envoyé.</p>
         </form>

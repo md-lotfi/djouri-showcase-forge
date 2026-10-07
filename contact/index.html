@@ -53,11 +53,22 @@ par une conversation.</h1>
           <div class="contact-details">
             <span>DJOURI DESIGNE</span>
             <p data-fr="Atelier d’architecture &amp; design intérieur" data-ar="مكتب العمارة والتصميم الداخلي">Atelier d’architecture &amp; design intérieur</p>
-            <p data-fr="Coordonnées de l’atelier à venir." data-ar="ستتوفر بيانات التواصل قريبًا.">Coordonnées de l’atelier à venir.</p>
+            <dl class="contact-channels">
+              <div>
+                <dt data-fr="Téléphone" data-ar="الهاتف">Téléphone</dt>
+                <dd><a href="tel:+213671567738" dir="ltr">0671 56 77 38</a></dd>
+                <dd><a href="tel:+213671625815" dir="ltr">0671 62 58 15</a></dd>
+              </div>
+              <div>
+                <dt data-fr="Email" data-ar="البريد الإلكتروني">Email</dt>
+                <dd><a href="mailto:djouridesigne@gmail.com" dir="ltr">djouridesigne@gmail.com</a></dd>
+              </div>
+            </dl>
+            <a class="text-link contact-location-link" data-site-link href="../contact/?lang=fr#map"><span data-fr="Nous trouver" data-ar="موقعنا">Nous trouver</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
           </div>
         </div>
-        <form class="inquiry-form">
-          <noscript><p>Activez JavaScript pour télécharger votre demande. Aucun message ne sera envoyé.</p></noscript>
+        <form class="inquiry-form" data-recipient="djouridesigne@gmail.com">
+          <noscript><p>Activez JavaScript pour préparer votre demande, ou contactez-nous directement par email ou téléphone.</p></noscript>
           <div class="form-row">
             <label><span data-fr="Votre nom" data-ar="الاسم">Votre nom</span><input name="Nom" required autocomplete="name" placeholder="Nom complet" data-placeholder-fr="Nom complet" data-placeholder-ar="الاسم الكامل"></label>
             <label><span data-fr="Votre email" data-ar="البريد الإلكتروني">Votre email</span><input type="email" name="Email" required autocomplete="email" placeholder="vous@exemple.com"></label>
@@ -70,11 +81,27 @@ par une conversation.</h1>
           </label>
           <label><span data-fr="Votre message" data-ar="الرسالة">Votre message</span><textarea name="Message" required rows="4" placeholder="Parlez-nous de votre projet…" data-placeholder-fr="Parlez-nous de votre projet…" data-placeholder-ar="حدثنا عن مشروعك…"></textarea></label>
           <div class="form-submit">
-            <p data-fr="L’envoi sera disponible après ajout de l’email de l’atelier. Vous pouvez télécharger votre demande." data-ar="سيكون الإرسال متاحًا بعد إضافة بريد المكتب. يمكنك تنزيل طلبك.">L’envoi sera disponible après ajout de l’email de l’atelier. Vous pouvez télécharger votre demande.</p>
-            <button type="submit" class="inquiry-submit" disabled><span data-fr="Préparer la demande" data-ar="إعداد الطلب">Préparer la demande</span><svg class="icon icon-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+            <p data-fr="Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande." data-ar="أعدّ رسالة بريد من النموذج ثم أرسلها من تطبيق البريد. يمكنك أيضًا تنزيل طلبك.">Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande.</p>
+            <div class="inquiry-actions">
+              <button type="submit" class="inquiry-submit" disabled><span data-fr="Préparer l’email" data-ar="إعداد البريد">Préparer l’email</span><svg class="icon icon-mail" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></button>
+              <button type="button" class="inquiry-submit inquiry-download" data-download-inquiry disabled><span data-fr="Télécharger la demande" data-ar="تنزيل الطلب">Télécharger la demande</span><svg class="icon icon-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+            </div>
           </div>
           <p data-fr="Votre demande a été téléchargée. Aucun message n’a été envoyé." data-ar="تم تنزيل طلبك. لم يتم إرسال أي رسالة." role="status" hidden>Votre demande a été téléchargée. Aucun message n’a été envoyé.</p>
         </form>
+      </section>
+      <section id="map" class="location-section section-wrap" aria-labelledby="location-heading">
+        <div class="section-heading">
+          <div>
+            <span data-fr="DJOURI DESIGNE / LOCALISATION" data-ar="ديجوري ديزاين / الموقع" class="eyebrow">DJOURI DESIGNE / LOCALISATION</span>
+            <h2 data-fr="Nous trouver" data-ar="موقعنا" id="location-heading">Nous trouver</h2>
+            <p data-fr="Retrouvez l’atelier sur Google Maps et préparez votre itinéraire." data-ar="اعثر على المكتب في خرائط Google وخطّط لمسارك.">Retrouvez l’atelier sur Google Maps et préparez votre itinéraire.</p>
+          </div>
+          <a class="text-link" href="https://www.google.com/maps/place/Djouri+design/@36.8020674,5.74455,92m/data=!3m1!1e3!4m6!3m5!1s0x12f25fa55558e181:0x85d8b25456452c03!8m2!3d36.8019335!4d5.7445404!16s%2Fg%2F11vf2ppl05?entry=tts&amp;g_ep=EgoyMDI2MTAwNC4wIPu8ASoASAFQAw%3D%3D&amp;skid=93f44ac3-4da6-4ed4-9047-853958b230e7" target="_blank" rel="noopener noreferrer"><span data-fr="Ouvrir dans Google Maps" data-ar="افتح في خرائط Google">Ouvrir dans Google Maps</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        </div>
+        <div class="location-map">
+          <iframe data-location-map src="https://www.google.com/maps?q=36.8019335%2C5.7445404&amp;z=17&amp;hl=fr&amp;output=embed" title="Localisation de Djouri design sur Google Maps" data-title-fr="Localisation de Djouri design sur Google Maps" data-title-ar="موقع ديجوري ديزاين على خرائط Google" width="1200" height="440" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
       </section>
     </main>
     <footer class="site-footer">

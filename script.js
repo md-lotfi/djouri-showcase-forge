@@ -39,7 +39,7 @@
     document.querySelectorAll('[data-fr][data-ar]').forEach((element) => {
       element.textContent = element.getAttribute(`data-${language}`);
     });
-    ['alt', 'aria-label', 'placeholder', 'content'].forEach((attribute) => {
+    ['alt', 'aria-label', 'placeholder', 'content', 'title'].forEach((attribute) => {
       document.querySelectorAll(`[data-${attribute}-fr]`).forEach((element) => {
         element.setAttribute(attribute, element.getAttribute(`data-${attribute}-${language}`));
       });
@@ -57,6 +57,13 @@
       // A file browser does not resolve directory links to index.html like a server.
       if (window.location.protocol === 'file:' && href.endsWith('/')) href += 'index.html';
       link.setAttribute('href', `${href}${url.search}${url.hash}`);
+    });
+    document.querySelectorAll('[data-location-map]').forEach((map) => {
+      const url = new URL(map.src);
+      if (url.searchParams.get('hl') !== language) {
+        url.searchParams.set('hl', language);
+        map.src = url.href;
+      }
     });
     updateMenu();
     try {
@@ -251,16 +258,43 @@
   }
 
   document.querySelectorAll('.inquiry-form').forEach((form) => {
+    const status = form.querySelector('[role="status"]');
+    const downloadButton = form.querySelector('[data-download-inquiry]');
+
+    function prepareRequest() {
+      if (!form.reportValidity()) return null;
+      // Use visible labels in the current language and keep the visitor's draft intact.
+      return [
+        text('DJOURI DESIGNE — Demande de projet', 'ديجوري ديزاين — طلب مشروع'),
+        `${text('Nom', 'الاسم')}: ${form.elements.Nom.value}`,
+        `${text('Email', 'البريد الإلكتروني')}: ${form.elements.Email.value}`,
+        `${text('Type de projet', 'نوع المشروع')}: ${form.elements.Projet.selectedOptions[0].textContent}`,
+        `${text('Message', 'الرسالة')}: ${form.elements.Message.value}`,
+      ].join('\n\n');
+    }
+
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      if (!form.reportValidity()) return;
-      const data = new FormData(form);
-      // Export the visible project label in the visitor's selected language.
-      data.set('Projet', form.elements.Projet.selectedOptions[0].textContent);
-      const request = [
-        text('DJOURI DESIGNE — Demande de projet', 'ديجوري ديزاين — طلب مشروع'),
-        ...Array.from(data, ([key, value]) => `${key}: ${value}`),
-      ].join('\n\n');
+      const request = prepareRequest();
+      if (request === null) return;
+      const subject = text('Demande de projet — DJOURI DESIGNE', 'طلب مشروع — ديجوري ديزاين');
+      const compose = document.createElement('a');
+      compose.href = `mailto:${form.dataset.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(request)}`;
+      document.body.append(compose);
+      compose.click();
+      compose.remove();
+      // Opening a mailto link cannot confirm whether an email app opened or sent anything.
+      setTranslatedText(
+        status,
+        'Finalisez l’envoi dans votre messagerie. Si elle ne s’ouvre pas, téléchargez la demande ou utilisez notre adresse email.',
+        'أكمل الإرسال من تطبيق البريد. إذا لم يفتح، نزّل الطلب أو استخدم عنوان بريدنا الإلكتروني.',
+      );
+      status.hidden = false;
+    });
+
+    downloadButton.addEventListener('click', () => {
+      const request = prepareRequest();
+      if (request === null) return;
       const url = URL.createObjectURL(new Blob([request], { type: 'text/plain;charset=utf-8' }));
       const download = document.createElement('a');
       download.href = url;
@@ -269,10 +303,16 @@
       download.click();
       download.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      form.querySelector('[role="status"]').hidden = false;
+      setTranslatedText(
+        status,
+        'Votre demande a été téléchargée. Aucun message n’a été envoyé.',
+        'تم تنزيل طلبك. لم يتم إرسال أي رسالة.',
+      );
+      status.hidden = false;
     });
     // Without JavaScript the form stays disabled instead of issuing a GET request.
     form.querySelector('button[type="submit"]').disabled = false;
+    downloadButton.disabled = false;
   });
 
   applyLanguage();

@@ -15,4 +15,6 @@
 - Use relative page and asset paths so direct visits and refreshes work on GitHub Pages under a repository subdirectory. Publish from the repository root with `.nojekyll` and no build step.
 - Original project media are local optimized WebP files in `assets/`; preserve them and their provenance. Do not use Lovable asset pointers or substitute stock images.
 - The Projects page includes 13 studies; the home page features six original projects and three living-space studies. Lightbox entries and counters derive from the actual project cards. Keep film playback user initiated, with local posters and `preload="none"`.
-- Inquiry delivery remains disabled until an actual recipient and delivery service are supplied; the form exports a local text request without pretending to send it.
+- Contact channels are `0671 56 77 38`, `0671 62 58 15`, and `djouridesigne@gmail.com`; phone links use Algeria’s +213 country code. Do not assume WhatsApp availability or invent a street address.
+- Inquiry forms open an email draft addressed to `djouridesigne@gmail.com`; sending is completed by the visitor in their email application. Keep the validated local text-download fallback and never claim automatic delivery or that a message was sent. No backend email service is configured.
+- The Contact page embeds Google Maps at `36.8019335, 5.7445404`, with a direct link to the supplied Djouri design business listing. Keep its title/labels bilingual and its iframe lazy-loaded.
