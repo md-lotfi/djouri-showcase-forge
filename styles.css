@@ -429,6 +429,7 @@ h2 {
   line-height:1.8;
 }
 .inquiry-form {
+  min-width:0;
   display:flex;
   flex-direction:column;
   gap:23px;
@@ -1110,12 +1111,12 @@ html { scrollbar-gutter: stable; }
   min-width: 0;
   padding: 12px 16px;
 }
-.inquiry-actions .inquiry-submit:not(.inquiry-download) {
+.inquiry-actions .inquiry-submit {
   background: var(--foreground);
   border-color: var(--foreground);
   color: var(--background);
 }
-.inquiry-actions .inquiry-submit:not(.inquiry-download):hover {
+.inquiry-actions .inquiry-submit:hover {
   background: #333;
 }
 .location-section {
@@ -1138,3 +1139,12 @@ html { scrollbar-gutter: stable; }
   height: clamp(320px, 35vw, 440px);
   border: 0;
 }
+
+.inquiry-submit:disabled { opacity: .65; cursor: wait; }
+
+.inquiry-form [aria-invalid="true"] { border-color: #a32121; }
+
+.inquiry-verification { min-width: 0; }
+.inquiry-verification [data-turnstile-widget] { width: 100%; }
+.inquiry-verification [data-turnstile-status] { margin: 10px 0; }
+.inquiry-verification [data-turnstile-retry] { margin-top: 8px; background: transparent; }

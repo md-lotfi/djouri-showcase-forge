@@ -5,6 +5,7 @@
   const languageFromUrl = () =>
     new URLSearchParams(window.location.search).get('lang') === 'ar' ? 'ar' : 'fr';
   let language = languageFromUrl();
+  const inquiryLanguageUpdates = [];
   const text = (fr, ar) => (language === 'ar' ? ar : fr);
 
   function setTranslatedText(element, fr, ar) {
@@ -66,6 +67,7 @@
       }
     });
     updateMenu();
+    inquiryLanguageUpdates.forEach((update) => update());
     try {
       localStorage.setItem('djouri-language', language);
     } catch {
@@ -257,62 +259,208 @@
     });
   }
 
-  document.querySelectorAll('.inquiry-form').forEach((form) => {
-    const status = form.querySelector('[role="status"]');
-    const downloadButton = form.querySelector('[data-download-inquiry]');
+  let turnstileReady;
+  function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    if (turnstileReady) return turnstileReady;
+    turnstileReady = new Promise((resolve, reject) => {
+      const sdk = document.createElement('script');
+      sdk.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      sdk.async = true;
+      const fail = () => {
+        window.clearTimeout(timer);
+        sdk.remove();
+        turnstileReady = null;
+        reject(new Error('Turnstile unavailable'));
+      };
+      const timer = window.setTimeout(fail, 15000);
+      sdk.onerror = fail;
+      sdk.onload = () => {
+        window.clearTimeout(timer);
+        if (!window.turnstile) return fail();
+        resolve(window.turnstile);
+      };
+      document.head.append(sdk);
+    });
+    return turnstileReady;
+  }
 
-    function prepareRequest() {
-      if (!form.reportValidity()) return null;
-      // Use visible labels in the current language and keep the visitor's draft intact.
-      return [
-        text('DJOURI DESIGNE — Demande de projet', 'ديجوري ديزاين — طلب مشروع'),
-        `${text('Nom', 'الاسم')}: ${form.elements.Nom.value}`,
-        `${text('Email', 'البريد الإلكتروني')}: ${form.elements.Email.value}`,
-        `${text('Type de projet', 'نوع المشروع')}: ${form.elements.Projet.selectedOptions[0].textContent}`,
-        `${text('Message', 'الرسالة')}: ${form.elements.Message.value}`,
-      ].join('\n\n');
+  document.querySelectorAll('.inquiry-form').forEach((form) => {
+    const status = form.querySelector('[data-inquiry-status]');
+    const button = form.querySelector('button[type="submit"]');
+    const buttonLabel = button.querySelector('span');
+    const fields = [...form.querySelectorAll('input, select, textarea')];
+    let pending = false;
+    const verification = form.querySelector('.inquiry-verification');
+    const widget = verification.querySelector('[data-turnstile-widget]');
+    const verificationStatus = verification.querySelector('[data-turnstile-status]');
+    const retry = verification.querySelector('[data-turnstile-retry]');
+    let widgetId;
+    let widgetLanguage;
+    let widgetSize;
+    const verificationSize = () => widget.clientWidth < 300 ? 'compact' : 'flexible';
+    let token = '';
+    let initializing = false;
+
+    function verificationMessage(fr, ar, canRetry = false) {
+      setTranslatedText(verificationStatus, fr, ar);
+      verificationStatus.hidden = false;
+      retry.hidden = !canRetry;
     }
 
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const request = prepareRequest();
-      if (request === null) return;
-      const subject = text('Demande de projet — DJOURI DESIGNE', 'طلب مشروع — ديجوري ديزاين');
-      const compose = document.createElement('a');
-      compose.href = `mailto:${form.dataset.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(request)}`;
-      document.body.append(compose);
-      compose.click();
-      compose.remove();
-      // Opening a mailto link cannot confirm whether an email app opened or sent anything.
-      setTranslatedText(
-        status,
-        'Finalisez l’envoi dans votre messagerie. Si elle ne s’ouvre pas, téléchargez la demande ou utilisez notre adresse email.',
-        'أكمل الإرسال من تطبيق البريد. إذا لم يفتح، نزّل الطلب أو استخدم عنوان بريدنا الإلكتروني.',
+    function verificationFailed() {
+      token = '';
+      verificationMessage(
+        'Vérification indisponible. Réessayez ou contactez-nous par email ou téléphone.',
+        'التحقق غير متاح. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف.',
+        true,
       );
-      status.hidden = false;
-    });
+      return true;
+    }
 
-    downloadButton.addEventListener('click', () => {
-      const request = prepareRequest();
-      if (request === null) return;
-      const url = URL.createObjectURL(new Blob([request], { type: 'text/plain;charset=utf-8' }));
-      const download = document.createElement('a');
-      download.href = url;
-      download.download = 'demande-projet-djouri.txt';
-      document.body.append(download);
-      download.click();
-      download.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setTranslatedText(
-        status,
-        'Votre demande a été téléchargée. Aucun message n’a été envoyé.',
-        'تم تنزيل طلبك. لم يتم إرسال أي رسالة.',
+    function verificationExpired() {
+      token = '';
+      verificationMessage(
+        'La vérification a expiré. Veuillez la renouveler avant l’envoi.',
+        'انتهت صلاحية التحقق. يرجى تجديده قبل الإرسال.',
+        true,
       );
-      status.hidden = false;
+    }
+
+    async function renderVerification() {
+      if (pending || initializing) return;
+      initializing = true;
+      token = '';
+      verificationMessage('Chargement de la vérification…', 'جارٍ تحميل التحقق…');
+      try {
+        const api = await loadTurnstile();
+        if (widgetId !== undefined) api.remove(widgetId);
+        widgetLanguage = language;
+        widgetSize = verificationSize();
+        widgetId = api.render(widget, {
+          sitekey: verification.dataset.turnstileSitekey,
+          language,
+          theme: 'light',
+          size: widgetSize,
+          'response-field': false,
+          retry: 'never',
+          callback: (value) => {
+            token = value;
+            verificationStatus.hidden = true;
+            retry.hidden = true;
+          },
+          'error-callback': verificationFailed,
+          'expired-callback': verificationExpired,
+          'timeout-callback': verificationExpired,
+        });
+      } catch {
+        verificationFailed();
+      } finally {
+        initializing = false;
+      }
+    }
+
+    retry.addEventListener('click', renderVerification);
+    new ResizeObserver(() => {
+      if (widgetSize && widgetSize !== verificationSize()) renderVerification();
+    }).observe(widget);
+    inquiryLanguageUpdates.push(() => {
+      if (widgetLanguage && widgetLanguage !== language) renderVerification();
     });
-    // Without JavaScript the form stays disabled instead of issuing a GET request.
-    form.querySelector('button[type="submit"]').disabled = false;
-    downloadButton.disabled = false;
+    renderVerification();
+
+    function showStatus(fr, ar) {
+      setTranslatedText(status, fr, ar);
+      status.hidden = false;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending || !form.reportValidity()) return;
+      if (!token || widgetId === undefined || !window.turnstile ||
+          window.turnstile.isExpired(widgetId)) {
+        token = '';
+        verificationMessage(
+          'Veuillez terminer la vérification avant d’envoyer votre demande.',
+          'يرجى إكمال التحقق قبل إرسال طلبك.',
+          true,
+        );
+        return;
+      }
+      fields.forEach((field) => { field.removeAttribute('aria-invalid'); });
+      const payload = new FormData(form);
+      payload.set('cf-turnstile-response', token);
+      retry.disabled = true;
+      pending = true;
+      button.disabled = true;
+      fields.forEach((field) => { field.disabled = true; });
+      form.setAttribute('aria-busy', 'true');
+      setTranslatedText(buttonLabel, 'Envoi en cours…', 'جارٍ الإرسال…');
+      showStatus('Envoi de votre demande en cours…', 'جارٍ إرسال طلبك…');
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: payload,
+        });
+        const result = await response.json().catch(() => null);
+        // Formspree returns a JSON acknowledgement; never follow its next URL.
+        const confirmed = result && (typeof result.next === 'string' || result.ok === true);
+        if (!response.ok || !confirmed || result.error || result.errors?.length) {
+          const invalidFields = (Array.isArray(result?.errors) ? result.errors : [])
+            .map((error) => form.elements.namedItem(error.field))
+            .filter((field) => fields.includes(field));
+          invalidFields.forEach((field) => { field.setAttribute('aria-invalid', 'true'); });
+          if (response.status === 429) {
+            showStatus(
+              'Veuillez patienter quelques instants avant de réessayer. Votre demande est conservée.',
+              'يرجى الانتظار قليلًا قبل المحاولة مجددًا. تم الاحتفاظ بطلبك.',
+            );
+          } else if (invalidFields.length) {
+            showStatus(
+              'Vérifiez les champs indiqués et réessayez. Votre demande est conservée.',
+              'تحقق من الحقول المحددة وحاول مجددًا. تم الاحتفاظ بطلبك.',
+            );
+          } else {
+            showStatus(
+              'Votre demande n’a pas pu être confirmée. Réessayez ou contactez-nous par email ou téléphone. Votre demande est conservée.',
+              'تعذّر تأكيد استلام طلبك. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. تم الاحتفاظ بطلبك.',
+            );
+          }
+          return;
+        }
+        form.reset();
+        showStatus('Votre demande a bien été reçue. Merci.', 'تم استلام طلبك بنجاح. شكرًا لك.');
+      } catch {
+        showStatus(
+          'Connexion indisponible. Réessayez ou contactez-nous par email ou téléphone. Votre demande est conservée.',
+          'الاتصال غير متاح. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. تم الاحتفاظ بطلبك.',
+        );
+      } finally {
+        pending = false;
+        button.disabled = false;
+        fields.forEach((field) => { field.disabled = false; });
+        form.removeAttribute('aria-busy');
+        setTranslatedText(buttonLabel, 'Envoyer la demande', 'إرسال الطلب');
+        retry.disabled = false;
+        // Verification tokens are single-use, including uncertain network outcomes.
+        token = '';
+        if (widgetLanguage !== language || widgetSize !== verificationSize()) {
+          renderVerification();
+        } else {
+          try {
+            window.turnstile.reset(widgetId);
+          } catch {
+            verificationFailed();
+          }
+        }
+      }
+    });
+    // JavaScript enables the form and keeps submissions on this page.
+    form.addEventListener('input', (event) => {
+      if (fields.includes(event.target)) event.target.removeAttribute('aria-invalid');
+    });
+    button.disabled = false;
   });
 
   applyLanguage();

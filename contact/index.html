@@ -67,27 +67,31 @@ par une conversation.</h1>
             <a class="text-link contact-location-link" data-site-link href="../contact/?lang=fr#map"><span data-fr="Nous trouver" data-ar="موقعنا">Nous trouver</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
           </div>
         </div>
-        <form class="inquiry-form" data-recipient="djouridesigne@gmail.com">
-          <noscript><p>Activez JavaScript pour préparer votre demande, ou contactez-nous directement par email ou téléphone.</p></noscript>
+        <form class="inquiry-form" action="https://formspree.io/f/moejelao" method="POST">
+          <noscript><p>Activez JavaScript pour envoyer votre demande, ou contactez-nous directement par email ou téléphone. / فعّل JavaScript لإرسال طلبك، أو تواصل معنا مباشرة عبر البريد أو الهاتف.</p></noscript>
           <div class="form-row">
-            <label><span data-fr="Votre nom" data-ar="الاسم">Votre nom</span><input name="Nom" required autocomplete="name" placeholder="Nom complet" data-placeholder-fr="Nom complet" data-placeholder-ar="الاسم الكامل"></label>
-            <label><span data-fr="Votre email" data-ar="البريد الإلكتروني">Votre email</span><input type="email" name="Email" required autocomplete="email" placeholder="vous@exemple.com"></label>
+            <label><span data-fr="Votre nom" data-ar="الاسم">Votre nom</span><input name="name" required autocomplete="name" placeholder="Nom complet" data-placeholder-fr="Nom complet" data-placeholder-ar="الاسم الكامل"></label>
+            <label><span data-fr="Votre email" data-ar="البريد الإلكتروني">Votre email</span><input type="email" name="email" required autocomplete="email" placeholder="vous@exemple.com"></label>
           </div>
           <label><span data-fr="Type de projet" data-ar="نوع المشروع">Type de projet</span>
-            <select name="Projet" required>
+            <select name="projectType" required>
               <option data-fr="Sélectionnez votre projet" data-ar="اختر نوع المشروع" value="" disabled selected>Sélectionnez votre projet</option>
               <option data-fr="Architecture résidentielle" data-ar="عمارة سكنية" value="Architecture résidentielle">Architecture résidentielle</option><option data-fr="Design intérieur" data-ar="تصميم داخلي" value="Design intérieur">Design intérieur</option><option data-fr="Études &amp; plans 3D" data-ar="دراسات ومخططات ثلاثية الأبعاد" value="Études & plans 3D">Études &amp; plans 3D</option><option data-fr="Autre projet" data-ar="مشروع آخر" value="Autre projet">Autre projet</option>
             </select>
           </label>
-          <label><span data-fr="Votre message" data-ar="الرسالة">Votre message</span><textarea name="Message" required rows="4" placeholder="Parlez-nous de votre projet…" data-placeholder-fr="Parlez-nous de votre projet…" data-placeholder-ar="حدثنا عن مشروعك…"></textarea></label>
+          <label><span data-fr="Votre message" data-ar="الرسالة">Votre message</span><textarea name="message" required rows="4" placeholder="Parlez-nous de votre projet…" data-placeholder-fr="Parlez-nous de votre projet…" data-placeholder-ar="حدثنا عن مشروعك…"></textarea></label>
+          <div class="inquiry-verification" data-turnstile-sitekey="0x4AAAAAABDo3LD4GLKBstnv">
+            <div data-turnstile-widget></div>
+            <p data-turnstile-status role="status" aria-live="polite" aria-atomic="true" data-fr="Chargement de la vérification…" data-ar="جارٍ تحميل التحقق…">Chargement de la vérification…</p>
+            <button type="button" class="text-link" data-turnstile-retry hidden><span data-fr="Réessayer la vérification" data-ar="إعادة محاولة التحقق">Réessayer la vérification</span></button>
+          </div>
           <div class="form-submit">
-            <p data-fr="Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande." data-ar="أعدّ رسالة بريد من النموذج ثم أرسلها من تطبيق البريد. يمكنك أيضًا تنزيل طلبك.">Préparez un email à partir du formulaire, puis envoyez-le depuis votre messagerie. Vous pouvez aussi télécharger votre demande.</p>
+            <p data-fr="Envoyez votre demande pour nous parler de votre projet." data-ar="أرسل طلبك لتحدثنا عن مشروعك.">Envoyez votre demande pour nous parler de votre projet.</p>
             <div class="inquiry-actions">
-              <button type="submit" class="inquiry-submit" disabled><span data-fr="Préparer l’email" data-ar="إعداد البريد">Préparer l’email</span><svg class="icon icon-mail" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></button>
-              <button type="button" class="inquiry-submit inquiry-download" data-download-inquiry disabled><span data-fr="Télécharger la demande" data-ar="تنزيل الطلب">Télécharger la demande</span><svg class="icon icon-download" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+              <button type="submit" class="inquiry-submit" disabled><span data-fr="Envoyer la demande" data-ar="إرسال الطلب">Envoyer la demande</span><svg class="icon icon-mail" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></button>
             </div>
           </div>
-          <p data-fr="Votre demande a été téléchargée. Aucun message n’a été envoyé." data-ar="تم تنزيل طلبك. لم يتم إرسال أي رسالة." role="status" hidden>Votre demande a été téléchargée. Aucun message n’a été envoyé.</p>
+          <p data-inquiry-status role="status" aria-live="polite" aria-atomic="true" hidden></p>
         </form>
       </section>
       <section id="map" class="location-section section-wrap" aria-labelledby="location-heading">
