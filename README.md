@@ -1,88 +1,58 @@
-# Djouri Showcase
+# DJOURI DESIGNE
 
-Lovable.dev Senior Designer Prompt: DJOURI DESIGNE ATELIER D'ARCHITECTURE
-Goal: Create a high-end, professional showcase website for "DJOURI DESIGNE ATELIER D'ARCHITECTURE," a studio specializing in premium architecture, interior design, and multi-story developments. The site must be bilingual (French and Arabic) and present a refined, precise aesthetic typical of the industry.
+A bilingual French/Arabic architecture portfolio made with plain HTML, CSS, and JavaScript. The React, TanStack, Tailwind, Vite, and npm build stack has been removed. No installation or build is needed.
 
-Design Philosophy: Minimalist, structural, and sophisticated. The design must emphasize the imagery, using clean lines and a professional layout.
+## Publish on GitHub Pages
 
-1. Technical Requirements & Structure
-Platform: Lovable.dev (use standard components like carousels, forms, and grid systems where possible).
+1. Commit these files and push them to the repository's `main` branch.
+2. Open the repository's **Settings → Pages**.
+3. Under **Build and deployment**, choose **Deploy from a branch**.
+4. Select **main** and **/ (root)**, then save.
+5. Once GitHub finishes publishing, visit <https://md-lotfi.github.io/djouri-showcase-forge/>.
 
-Bilingual System (FR/AR):
-Implement a persistent, elegant language switcher (top right of the header).
-The entire site must support RTL (Right-to-Left) layout in Arabic. When Arabic is selected, the layout should reverse, and typography should align accordingly.
-Placeholder translations are required (e.g., "Notre Atelier" / "مكتبنا").
+`.nojekyll` tells GitHub Pages to serve the static files directly. All internal links and assets use relative paths, so the same files also work on another repository or a custom domain. No GitHub Actions build workflow is required.
 
-Performance: All images must be optimized and support lazy loading. The carousel should be lightweight.
+For the official instructions, see [Configuring a publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-SEO: Implement basic SEO structure for both languages (Title tags, Meta descriptions, Alt texts).
+## Preview locally
 
-2. Visual Identity, Logo, and Color Palette
-Decision: I have selected the BLACK logo.
-Rationale: A black logo is the definitive industry standard for professional architecture firms on a clean, light background. It offers the highest contrast, precision, and sophistication, projecting a message of structural clarity. (The white logo is for dark backgrounds; the black logo will be the primary on the white site).
-
-Professional Architecture Color Palette (Industry Standard):
-Background (Canvas): Primary: FFFFFF (Pure White) and Secondary: F7F7F7 (Light Architectural Grey).
-Typography (Primary): 1A1A1A (Near Black) for high readability.
-Typography (Secondary) / Accents: 787878 (Medium Grey) for descriptions, captions, and structural lines.
-Call-to-Action / Active Element: 9C8461 (Warm Bronze/Champagne) for subtle elegance, or a simple bordered button (standard in the industry).
-
-3. Section-by-Section Design Breakdown
-Section A: Professional Header (Nav Bar)
-Left Side: The BLACK version of the provided logo, scaled precisely.
-Center (RTL on AR): Navigation menu. Primary Nav Items (FR/AR): Home / Accueil / الرئيسية | Projects / Projets / المشاريع | About / Notre Atelier / مكتبنا | Contact / اتصل بنا
-Right Side (LTR on FR): The Language Switcher (e.g., "FR | AR"). The switcher should be very subtle.
-
-Section B: Hero / Feature Carousel (The Key Requirement)
-Layout: A large, elegant, auto-scrolling (slow speed) Hero Carousel that fills 70-80% of the screen height. This carousel must feature the most representative, high-resolution projects.
-Image Sourcing & Context: The carousel should start with a diverse mix.
-Slide 1: Start with high-rise contemporary projects. Place a subtle overlay caption on this slide: "Design Contemporain de Haute Tour" / "تصميم برجي معاصر" and include the firm name "DJOURI DESIGNE ATELIER D'ARCHITECTURE."
-Subsequent Slides: Include key detailed images to show scope (e.g., Moroccan-infused architecture, complex 3D plan).
-Carousel Specifics:
-Smooth fade-in/out transitions.
-Simple, discreet navigation (prev/next arrows) and unobtrusive pagination dots at the bottom.
-Each slide must accommodate a title and a sub-caption, visible on hover or persistent (must work bilingually).
-
-Section C: Project Showcase Grid (Static Gallery)
-Layout: A clean, structural grid (3x2 or 4x2) for featured projects. This is where users see the wider portfolio after the carousel.
-Implementation: Use thumbnails of provided project images.
-Content (Placeholder titles):
-Façade Plan: "Plan de Façade Villa Andalousie" / "مخطط واجهة فيلا أندلسية"
-Villa with car: "Conception de Résidence Privée" / "تصميم سكن خاص"
-3D Plan: "Planification Intérieure et 3D" / "تخطيط داخلي وثلاثي الأبعاد"
-Living room: "Intérieur Résidentiel Haut de Gamme" / "تصميم داخلي سكني فاخر"
-UX: Ensure standard lightbox behavior when a project thumbnail is clicked, allowing full-screen viewing of the selected image.
-
-Section D: "Notre Atelier / مكتبنا" (About Us)
-Layout: A simple split-screen layout.
-Left (Text): Professional bilingual copy explaining the firm's philosophy, expertise (interior design, structure, urban planning), and mission. (FR text and AR text).
-Right (Visual): A high-quality interior shot of the studio to suggest precision.
-
-Section E: Contact and Inquiry
-Layout: A clean, functional section.
-Right (Form): A simple contact form with fields for Name, Email, Project Type, and Message. Field labels must be bilingual. (Bilingual CTA Button: "Envoyer" / "إرسال").
-Left (Contact Details): Professional contact information, physical address (map view optional but recommended), phone numbers, and email.
-
-Section F: Footer
-Content: Copyright notice, credits, and links to professional social media (LinkedIn). All text bilingual. (e.g., "© 2024 DJOURI DESIGNE. All rights reserved." / "© 2024 ديجوري ديزاين. جميع الحقوق محفوظة.")
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/895d89ee-2d79-497f-8fdb-f45f54fd197c).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Open `index.html` directly in a modern browser, or start a local static server:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+python3 -m http.server 8080
 ```
+
+Then visit <http://localhost:8080/>. Python is only an optional preview tool; it is not needed for hosting.
+
+## Files and editing
+
+| File | Purpose |
+| --- | --- |
+| `index.html` | Home page, carousel, selected projects, living spaces, studio, short film, inquiry form |
+| `projets/index.html` | 13 project studies, category filters and lightbox |
+| `atelier/index.html` | Studio presentation, expertise and portrait architectural film |
+| `contact/index.html` | Inquiry form |
+| `styles.css` | Shared responsive styles and RTL layout |
+| `script.js` | Language switching, mobile menu, carousel, filters, lightbox, downloads |
+| `assets/` | Original logo, optimized project images, film posters, local MP4 films and favicon |
+
+Edit the HTML directly. French text appears in the markup; translated elements also have `data-fr` and `data-ar` attributes. Update both attributes and the default French text together. Translated image alt text, accessible button labels, placeholders, and metadata use corresponding `data-alt-*`, `data-aria-label-*`, `data-placeholder-*`, and `data-content-*` attributes.
+
+The header, footer, and some sections are repeated across pages. Apply shared content changes to every applicable HTML file. Project cards are the source for the lightbox, so their titles, captions, and image paths need no separate JavaScript data list.
+
+## Language and interactions
+
+- French is the default. `?lang=ar` selects Arabic and RTL; any other value falls back to French.
+- Navigation retains the selected language. Switching languages updates the current URL without losing an inquiry draft. Browser Back/Forward restores the language from the URL.
+- Each page has its own title and description. JavaScript updates metadata in Arabic; preview crawlers that do not execute JavaScript see the French metadata.
+- The carousel changes slides every eight seconds and supports pause, arrows, and dots. Reduced-motion preferences disable automatic playback. Background tabs suspend playback.
+- The lightbox supports Previous/Next, keyboard arrow keys, Escape, focus trapping, and returning focus to the project button.
+- The inquiry form validates its fields and downloads `demande-projet-djouri.txt`. **It does not send an email or submit to a server.** Delivery needs an actual recipient and a separately configured service.
+
+All logo and project images are local assets. The original portfolio media came from the Lovable preview; seven additional renderings and two films came from the supplied Djouri-Design folder. Added renderings use optimized WebP images and responsive thumbnails; originals remain untouched. The two alternate gold logo artworks are also available in `assets/` without changing the existing site identity. Films use H.264/AAC MP4 with fast-start metadata, native controls, posters, and `preload="none"`; they never autoplay. Asset provenance and checksums are recorded in [assets/README.md](assets/README.md). Google Fonts is the only external visual resource; system fonts are used if it is unavailable.
+
+## Verify a change
+
+Check all four pages on desktop and mobile, including direct visits and refreshes. Check French/Arabic content, menu controls, project filters, lightbox keyboard controls, reduced-motion behavior, and form downloads. When testing deployment, also check the site under a repository subdirectory rather than only at `/`.
+
+This repository was originally created with Lovable. Keep its published git history intact: do not force push or rewrite pushed commits. Subsequent Lovable edits could reintroduce framework files; maintain this static version directly in the repository.

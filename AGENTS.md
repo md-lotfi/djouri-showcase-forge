@@ -9,7 +9,10 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Shared portfolio presentation and bilingual language state live in `src/components/atelier`; content pages use TanStack file routes so each page has its own share metadata.
-- Language is represented by the validated `lang` search parameter and retained in navigation, allowing Arabic RTL and metadata to render consistently on direct visits.
-- Uploaded project media use CDN asset pointers and optimized WebP variants to keep the repository light.
-- Inquiry delivery remains disabled until an actual recipient is supplied; the form exports a local text request without pretending to send it.
+- The user has replaced the React/Lovable build stack with plain static HTML, CSS, and JavaScript. Do not reintroduce a framework, package installation, or build requirement.
+- The four pages live at `index.html`, `projets/index.html`, `atelier/index.html`, and `contact/index.html`. Shared styles and behavior live in `styles.css` and `script.js`; shared HTML is repeated across pages and must be kept consistent.
+- Language comes from the validated `lang` search parameter (`ar` selects Arabic; all other values default to French), and navigation retains it. Arabic uses RTL. Maintain translated text, accessible labels, alt text, placeholders, and page metadata.
+- Use relative page and asset paths so direct visits and refreshes work on GitHub Pages under a repository subdirectory. Publish from the repository root with `.nojekyll` and no build step.
+- Original project media are local optimized WebP files in `assets/`; preserve them and their provenance. Do not use Lovable asset pointers or substitute stock images.
+- The Projects page includes 13 studies; the home page features six original projects and three living-space studies. Lightbox entries and counters derive from the actual project cards. Keep film playback user initiated, with local posters and `preload="none"`.
+- Inquiry delivery remains disabled until an actual recipient and delivery service are supplied; the form exports a local text request without pretending to send it.
