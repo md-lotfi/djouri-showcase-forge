@@ -28,6 +28,11 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --color-bronze: var(--bronze);
   --color-on-image: var(--on-image);
+  --color-footer: var(--footer-surface);
+  --color-footer-foreground: var(--footer-foreground);
+  --color-footer-muted: var(--footer-muted);
+  --color-footer-border: var(--footer-border);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -69,7 +74,12 @@
   --image-shade: oklch(0.15 0 0 / 65%);
   --image-shade-soft: oklch(0.15 0 0 / 5%);
   --overlay: oklch(0.1 0 0 / 90%);
+  --footer-surface: oklch(0 0 0);
+  --footer-foreground: oklch(1 0 0);
+  --footer-muted: oklch(0.74 0 0);
+  --footer-border: oklch(1 0 0 / 14%);
   --radius: 0.25rem;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.218 0 0);
   --card: oklch(1 0 0);
