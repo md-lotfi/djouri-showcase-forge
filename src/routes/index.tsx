@@ -1,24 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { routeMeta } from '@/components/atelier/content';
+import { Hero } from '@/components/atelier/hero';
+import { Gallery } from '@/components/atelier/gallery';
+import { SectionHeading, StudioSection, useText } from '@/components/atelier/site';
+import { ContactSection } from '@/components/atelier/contact';
 export const Route = createFileRoute("/")({
+  ...routeMeta('Architecture & design intérieur', 'العمارة والتصميم الداخلي'),
   component: Index,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  const t=useText();
+  return <><Hero/><section className="portfolio-section section-wrap"><SectionHeading number="01" title={t('Une sélection de nos projets','مجموعة مختارة من مشاريعنا')} subtitle={t('Architecture, intérieurs et perspectives. Chaque projet raconte une histoire.','عمارة وتصميم داخلي ورؤى. كل مشروع يروي قصة.')} link/><Gallery/></section><StudioSection/><ContactSection/></>;
 }
