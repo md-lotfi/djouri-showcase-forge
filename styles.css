@@ -1239,5 +1239,5 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
   html:not(.js) .mobile-menu { display: none; }
 }
 
-.hero-shade { background-color: rgb(0 0 0 / 16%); }
+.hero-shade, [dir=rtl] .hero-shade { background-color: rgb(0 0 0 / 40%); }
 .inquiry-form input, .inquiry-form textarea, .inquiry-form select { border-bottom-color: var(--muted-foreground); }
