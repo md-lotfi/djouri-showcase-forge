@@ -1,6 +1,8 @@
 /* Ordinary CSS: no Tailwind or build step. */
 :root {
-  --bronze: oklch(0.625 0.058 77);
+  --bronze: oklch(0.50 0.058 77);
+  --bronze-bright: oklch(0.625 0.058 77);
+  --motion-easing: cubic-bezier(.22, 1, .36, 1);
   --on-image: oklch(1 0 0);
   --image-shade: oklch(0.15 0 0 / 65%);
   --image-shade-soft: oklch(0.15 0 0 / 5%);
@@ -11,7 +13,7 @@
   --background: oklch(1 0 0);
   --foreground: oklch(0.218 0 0);
   --muted: oklch(0.976 0 0);
-  --muted-foreground: oklch(0.573 0 0);
+  --muted-foreground: oklch(0.50 0 0);
   --border: oklch(0.9 0 0);
 }
 * { box-sizing: border-box; border-color: var(--border); }
@@ -145,7 +147,7 @@ button {
 .hero-slide {
   object-fit:cover;
   opacity:0;
-  transition:opacity 1.4s ease;
+  transition:opacity 900ms var(--motion-easing);
   object-position:center 57%;
 }
 .hero-slide.slide-0 {
@@ -178,7 +180,7 @@ button {
 }
 .hero-copy .eyebrow {
   color:var(--on-image);
-  opacity:.85;
+  opacity:1;
   margin-bottom:23px;
 }
 .hero h1 {
@@ -197,7 +199,7 @@ button {
   font-size:1rem;
   margin-top:25px;
   color:var(--on-image);
-  opacity:.88;
+  opacity:1;
 }
 .hero-link {
   display:inline-flex;
@@ -221,7 +223,7 @@ button {
 }
 .slide-counter span {
   font-size:0.8125rem;
-  opacity:.65;
+  opacity:1;
   padding-inline-start:4px;
 }
 .slide-dots {
@@ -235,7 +237,7 @@ button {
   border-radius:50%;
   padding:0;
   background:var(--on-image);
-  opacity:.4;
+  opacity:.75;
   outline:7px solid transparent;
 }
 .slide-dot.active {
@@ -252,9 +254,12 @@ button {
   width:36px;
   height:36px;
 }
+@media (hover: hover) and (pointer: fine) {
 .slide-arrows button:hover {
   background:var(--image-shade);
 }
+}
+
 .slide-arrows button:first-child {
   border:0;
   opacity:.65;
@@ -314,9 +319,9 @@ h2 {
   width:100%;
   height:100%;
   object-fit:cover;
-  transition:transform .5s;
+  transition:transform 350ms var(--motion-easing);
 }
-.project-image:hover img {
+.project-image:focus-visible img {
   transform:scale(1.035);
 }
 .project-open {
@@ -332,7 +337,7 @@ h2 {
   opacity:0;
   transition:opacity .2s;
 }
-.project-image:hover .project-open,.project-image:focus-visible .project-open {
+.project-image:focus-visible .project-open {
   opacity:1;
 }
 .project-label {
@@ -586,10 +591,13 @@ h2 {
   inset-inline-end:25px;
   top:25px;
 }
+@media (hover: hover) and (pointer: fine) {
 .project-filters button:hover,.language:hover {
   background:transparent;
   color:var(--bronze);
 }
+}
+
 @media(min-width:1500px) {
   .hero-slide.slide-0 {
     object-position:center 61%;
@@ -880,9 +888,12 @@ h2 {
 .site-footer>a {
   color:var(--footer-foreground);
 }
+@media (hover: hover) and (pointer: fine) {
 .site-footer>a:hover {
   color:var(--bronze);
 }
+}
+
 @media(max-width:900px) {
   .site-footer {
     padding:32px 5%;
@@ -906,7 +917,10 @@ html { scrollbar-gutter: stable; }
 .studio-copy h1 { font-size: 36px; font-weight: 450; line-height: 1.4; white-space: pre-line; margin-bottom: 24px; }
 .contact-section h1 { font-size: 35px; font-weight: 450; line-height: 1.4; white-space: pre-line; }
 .inquiry-submit { border: 1px solid var(--border); background: var(--background); }
+@media (hover: hover) and (pointer: fine) {
 .inquiry-submit:hover { background: var(--muted); }
+}
+
 .slide-counter .slide-number { font-size: inherit; opacity: 1; padding: 0; }
 .mobile-menu .icon-close, [data-pause-carousel] .icon-play { display: none; }
 .mobile-menu[aria-expanded="true"] .icon-menu, [data-pause-carousel][aria-pressed="true"] .icon-pause { display: none; }
@@ -1087,9 +1101,12 @@ html { scrollbar-gutter: stable; }
   text-decoration-color: var(--border);
   text-underline-offset: 5px;
 }
+@media (hover: hover) and (pointer: fine) {
 .contact-channels a:hover {
   text-decoration-color: var(--foreground);
 }
+}
+
 .contact-location-link {
   margin-top: 22px;
 }
@@ -1116,9 +1133,12 @@ html { scrollbar-gutter: stable; }
   border-color: var(--foreground);
   color: var(--background);
 }
+@media (hover: hover) and (pointer: fine) {
 .inquiry-actions .inquiry-submit:hover {
   background: #333;
 }
+}
+
 .location-section {
   background: var(--muted);
   border-top: 1px solid var(--border);
@@ -1176,3 +1196,48 @@ html { scrollbar-gutter: stable; }
   background: #fff;
   border-radius: 50%;
 }
+
+/* Motion changes only compositing properties; the static document stays visible. */
+input::placeholder, textarea::placeholder { color: var(--muted-foreground); opacity: 1; }
+.inquiry-form input:focus-visible, .inquiry-form textarea:focus-visible,
+.inquiry-form select:focus-visible { outline: 2px solid var(--bronze); outline-offset: 4px; }
+.film-section:not(.film-section-portrait) .eyebrow,
+.site-footer > a:hover { color: var(--bronze-bright); }
+[dir="rtl"] .brand span, [dir="rtl"] .hero h1 span { letter-spacing: 0; }
+.text-link { transition: color 200ms, border-color 200ms; }
+.text-link .icon, .hero-link .icon { transition: transform 200ms var(--motion-easing); }
+.text-link:focus-visible .icon, .hero-link:focus-visible .icon { transform: translateX(3px); }
+[dir="rtl"] .text-link:focus-visible .icon, [dir="rtl"] .hero-link:focus-visible .icon { transform: translateX(-3px); }
+.main-nav a { text-underline-offset: 7px; }
+.main-nav a:focus-visible { text-decoration: underline; }
+.form-privacy { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
+.inquiry-verification [data-turnstile-status] { min-height: 3.6em; }
+.inquiry-form [data-inquiry-status] { min-height: 3.6em; }
+.privacy-section { border-top: 1px solid var(--border); scroll-margin-top: 24px; }
+.privacy-section summary { cursor: pointer; font-size: 1.25rem; }
+.privacy-section p { max-width: 76ch; margin-top: 20px; color: var(--muted-foreground); line-height: 1.9; }
+.privacy-section a { text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+@media (hover: hover) and (pointer: fine) {
+  .project-image:hover img { transform: scale(1.035); }
+  .project-image:hover .project-open { opacity: 1; }
+  .text-link:hover { border-color: currentColor; }
+  .text-link:hover .icon, .hero-link:hover .icon { transform: translateX(3px); }
+  [dir="rtl"] .text-link:hover .icon, [dir="rtl"] .hero-link:hover .icon { transform: translateX(-3px); }
+  .main-nav a:hover { text-decoration: underline; }
+}
+@media (hover: none), (pointer: coarse) { .project-open { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .project-image img, .text-link .icon, .hero-link .icon { transform: none !important; }
+}
+
+.inquiry-form [data-inquiry-status][hidden] { display: block !important; visibility: hidden; }
+
+/* Navigation remains available when JavaScript is disabled or initialization fails. */
+@media (max-width: 640px) {
+  html:not(.js) .site-header { height: auto; min-height: 83px; flex-wrap: wrap; padding-block: 15px; }
+  html:not(.js) .main-nav { display: flex; width: 100%; order: 3; gap: 12px 20px; flex-wrap: wrap; }
+  html:not(.js) .mobile-menu { display: none; }
+}
+
+.hero-shade { background-color: rgb(0 0 0 / 16%); }
+.inquiry-form input, .inquiry-form textarea, .inquiry-form select { border-bottom-color: var(--muted-foreground); }

@@ -8,7 +8,7 @@ A bilingual French/Arabic architecture portfolio made with plain HTML, CSS, and 
 2. Open the repository's **Settings → Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**.
 4. Select **main** and **/ (root)**, then save.
-5. Once GitHub finishes publishing, visit <https://md-lotfi.github.io/djouri-showcase-forge/>.
+5. Once GitHub finishes publishing, visit <https://djouri.raystate.com/> (the configured custom domain).
 
 `.nojekyll` tells GitHub Pages to serve the static files directly. All internal links and assets use relative paths, so the same files also work on another repository or a custom domain. No GitHub Actions build workflow is required.
 
@@ -70,3 +70,15 @@ All logo and project images are local assets. The original portfolio media came 
 Check all four pages on desktop and mobile, including direct visits and refreshes. Check French/Arabic content, menu controls, project filters, lightbox keyboard controls, reduced-motion behavior, form validation, submission loading/success/error states, duplicate prevention, and the Google Maps location/link. When testing deployment, also check the site under a repository subdirectory rather than only at `/`.
 
 This repository was originally created with Lovable. Keep its published git history intact: do not force push or rewrite pushed commits. Subsequent Lovable edits could reintroduce framework files; maintain this static version directly in the repository.
+
+## Production polish
+
+Motion uses native Web Animations, CSS transitions and one shared IntersectionObserver, with `cubic-bezier(.22, 1, .36, 1)`. The Home hero crossfades in 900 ms and its camera movement runs for eight seconds. Pause and background-tab suspension freeze the camera; reduced motion cancels entrances and camera movement, and pauses automatic slides. Preference changes apply during the visit. Headings animate as whole blocks, including Arabic. Sections reveal once; filtered cards keep their layout and become available immediately. Hover motion is reserved for fine pointers, with visible keyboard focus. Content remains visible without JavaScript or animation support. Forms and verification controls do not receive entrance effects.
+
+Requests have a 30-second AbortController deadline covering fetch and response parsing. Controls recover on failure, the entered text remains in the current form, and verification resets after every attempt. Requests are never resent automatically. Only a successful HTTP response with a Formspree acknowledgement clears the form. Text is not saved across reloads. Verification distinguishes loading, awaiting completion, verified, expired and unavailable states. Filtered lightboxes use only visible cards (Architecture 7, Interior 5, Plans/3D 1); a single entry disables navigation. Home retains all nine entries.
+
+Both forms explain the information submitted to Formspree and the Turnstile check. Every footer links to Contact’s expandable privacy information, including external fonts, mapping, hosting and the privacy contact email. No retention period or legal certification is claimed.
+
+Canonical URLs, `og:url`, the four-page sitemap and robots sitemap reference use **https://djouri.raystate.com/**. Sharing uses the original **1280 × 720** residence-film poster. Each page has a distinct bilingual description. Initial documents and crawler previews are French; Arabic metadata is updated by JavaScript from `?lang=ar`. These are not separate Arabic HTML documents, and crawlers that do not run JavaScript will not see the Arabic metadata.
+
+See [release-checks.md](release-checks.md) for the verification evidence and remaining owner/device checks. Publish with an ordinary commit and push; never rewrite published Lovable history.

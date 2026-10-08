@@ -6,6 +6,29 @@
     new URLSearchParams(window.location.search).get('lang') === 'ar' ? 'ar' : 'fr';
   let language = languageFromUrl();
   const inquiryLanguageUpdates = [];
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const motionEasing = 'cubic-bezier(.22, 1, .36, 1)';
+  const entranceAnimations = new Set();
+
+  // Content is visible by default. Animations never gate rendering or interaction.
+  function enter(element, duration = 600, delay = 0, rise = 18) {
+    if (motionPreference.matches || !element.animate) return;
+    try {
+      const animation = element.animate(
+        [{ opacity: 0, transform: `translateY(${rise}px)` },
+          { opacity: 1, transform: 'translateY(0)' }],
+        { duration, delay, easing: motionEasing, fill: 'backwards' },
+      );
+      entranceAnimations.add(animation);
+      animation.finished.then(() => entranceAnimations.delete(animation), () => entranceAnimations.delete(animation));
+    } catch { /* Unsupported animation leaves the content visible. */ }
+  }
+  motionPreference.addEventListener('change', () => {
+    if (motionPreference.matches) {
+      entranceAnimations.forEach((animation) => animation.cancel());
+      entranceAnimations.clear();
+    }
+  });
   const text = (fr, ar) => (language === 'ar' ? ar : fr);
 
   function setTranslatedText(element, fr, ar) {
@@ -121,10 +144,24 @@
     const dots = [...hero.querySelectorAll('[data-slide]')];
     const caption = hero.querySelector('.hero-caption');
     const pauseButton = hero.querySelector('[data-pause-carousel]');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const reducedMotion = motionPreference;
     let current = 0;
     let paused = reducedMotion.matches;
     let timer;
+    let camera;
+
+    function startCamera() {
+      camera?.cancel();
+      camera = null;
+      if (reducedMotion.matches || !slides[current].animate) return;
+      try {
+        camera = slides[current].animate(
+          [{ transform: 'scale(1.035)' }, { transform: 'scale(1)' }],
+          { duration: 8000, easing: motionEasing, fill: 'forwards' },
+        );
+        if (paused || document.hidden) camera.pause();
+      } catch { /* A static hero remains usable. */ }
+    }
 
     function showSlide(index) {
       current = (index + slides.length) % slides.length;
@@ -139,13 +176,23 @@
       hero.querySelector('.slide-number').textContent = String(current + 1).padStart(2, '0');
       setTranslatedText(
         caption,
-        current === 0 ? 'Design Contemporain de Haute Tour' : slides[current].getAttribute('data-alt-fr'),
-        current === 0 ? 'تصميم برجي معاصر' : slides[current].getAttribute('data-alt-ar'),
+        current === 0 ? 'Résidence contemporaine' : slides[current].getAttribute('data-alt-fr'),
+        current === 0 ? 'إقامة معاصرة' : slides[current].getAttribute('data-alt-ar'),
       );
+      startCamera();
     }
 
     function updatePlayback() {
       window.clearInterval(timer);
+      if (reducedMotion.matches) {
+        camera?.cancel();
+        camera = null;
+      } else if (camera) {
+        if (paused || document.hidden) camera.pause();
+        else camera.play();
+      } else if (!paused && !document.hidden) {
+        startCamera();
+      }
       pauseButton.setAttribute('aria-pressed', String(paused));
       pauseButton.disabled = reducedMotion.matches;
       setTranslatedLabel(
@@ -181,6 +228,7 @@
     document.addEventListener('visibilitychange', updatePlayback);
     showSlide(0);
     updatePlayback();
+    hero.querySelectorAll('.hero-copy > *').forEach((element, i) => enter(element, 550, i * 120, 16));
   }
 
   const projects = [...document.querySelectorAll('[data-project]')];
@@ -203,15 +251,32 @@
   if (dialog) {
     let selected = 0;
     let opener;
+    let collection = [];
+    let imageRevision = 0;
 
     function showProject(index) {
-      selected = (index + projects.length) % projects.length;
-      const project = projects[selected];
+      selected = (index + collection.length) % collection.length;
+      const project = collection[selected];
       const source = project.querySelector('img');
       const title = project.querySelector('h3');
       const caption = project.querySelector('p');
       const image = dialog.querySelector('.lightbox-image');
-      image.src = source.src;
+      const revision = ++imageRevision;
+      image.getAnimations().forEach((animation) => animation.cancel());
+      image.style.visibility = 'hidden';
+      const loaded = new Image();
+      loaded.onload = () => {
+        if (revision !== imageRevision || !dialog.open) return;
+        image.src = loaded.src;
+        image.style.visibility = '';
+        enter(image, 250, 0, 0);
+      };
+      loaded.onerror = () => {
+        if (revision !== imageRevision || !dialog.open) return;
+        image.src = source.src;
+        image.style.visibility = '';
+      };
+      loaded.src = source.src;
       ['fr', 'ar'].forEach((lang) => {
         image.setAttribute(`data-alt-${lang}`, source.getAttribute(`data-alt-${lang}`));
       });
@@ -219,14 +284,19 @@
       setTranslatedText(dialog.querySelector('h2'), title.dataset.fr, title.dataset.ar);
       setTranslatedText(dialog.querySelector('p'), caption.dataset.fr, caption.dataset.ar);
       dialog.querySelector('.lightbox-counter').textContent =
-        `${String(selected + 1).padStart(2, '0')} / ${String(projects.length).padStart(2, '0')}`;
+        `${String(selected + 1).padStart(2, '0')} / ${String(collection.length).padStart(2, '0')}`;
+      dialog.querySelectorAll('[data-project-step]').forEach((button) => {
+        button.disabled = collection.length < 2;
+      });
     }
 
-    projects.forEach((project, index) => {
+    projects.forEach((project) => {
       project.querySelector('button').addEventListener('click', (event) => {
         opener = event.currentTarget;
-        showProject(index);
+        collection = projects.filter((item) => !item.hidden);
+        showProject(collection.indexOf(project));
         dialog.showModal();
+        enter(dialog, 200, 0, 0);
         document.body.classList.add('lightbox-open');
       });
     });
@@ -249,11 +319,13 @@
       }
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
         event.preventDefault();
-        showProject(selected + (event.key === 'ArrowRight' ? 1 : -1));
+        if (collection.length > 1) showProject(selected + (event.key === 'ArrowRight' ? 1 : -1));
       }
     });
     // Native <dialog> provides the inert background and Escape handling.
     dialog.addEventListener('close', () => {
+      imageRevision++;
+      dialog.getAnimations().forEach((animation) => animation.cancel());
       document.body.classList.remove('lightbox-open');
       opener?.focus({ preventScroll: true });
     });
@@ -301,6 +373,11 @@
     const verificationSize = () => widget.clientWidth < 300 ? 'compact' : 'flexible';
     let token = '';
     let initializing = false;
+    function verificationState(state) { verification.dataset.state = state; }
+    function awaitingVerification() {
+      verificationState('awaiting');
+      verificationMessage('Veuillez terminer la vérification', 'يرجى إكمال التحقق');
+    }
 
     function verificationMessage(fr, ar, canRetry = false) {
       setTranslatedText(verificationStatus, fr, ar);
@@ -309,6 +386,7 @@
     }
 
     function verificationFailed() {
+      verificationState('unavailable');
       token = '';
       verificationMessage(
         'Vérification indisponible. Réessayez ou contactez-nous par email ou téléphone.',
@@ -319,6 +397,7 @@
     }
 
     function verificationExpired() {
+      verificationState('expired');
       token = '';
       verificationMessage(
         'La vérification a expiré. Veuillez la renouveler avant l’envoi.',
@@ -330,6 +409,7 @@
     async function renderVerification() {
       if (pending || initializing) return;
       initializing = true;
+      verificationState('loading');
       token = '';
       verificationMessage('Chargement de la vérification…', 'جارٍ تحميل التحقق…');
       try {
@@ -337,6 +417,7 @@
         if (widgetId !== undefined) api.remove(widgetId);
         widgetLanguage = language;
         widgetSize = verificationSize();
+        awaitingVerification();
         widgetId = api.render(widget, {
           sitekey: verification.dataset.turnstileSitekey,
           language,
@@ -346,7 +427,8 @@
           retry: 'never',
           callback: (value) => {
             token = value;
-            verificationStatus.hidden = true;
+            verificationState('verified');
+            verificationMessage('Vérification terminée', 'اكتمل التحقق');
             retry.hidden = true;
           },
           'error-callback': verificationFailed,
@@ -357,11 +439,12 @@
         verificationFailed();
       } finally {
         initializing = false;
+        if (widgetId !== undefined && (widgetLanguage !== language || widgetSize !== verificationSize())) renderVerification();
       }
     }
 
     retry.addEventListener('click', renderVerification);
-    new ResizeObserver(() => {
+    if (window.ResizeObserver) new ResizeObserver(() => {
       if (widgetSize && widgetSize !== verificationSize()) renderVerification();
     }).observe(widget);
     inquiryLanguageUpdates.push(() => {
@@ -397,34 +480,51 @@
       form.setAttribute('aria-busy', 'true');
       setTranslatedText(buttonLabel, 'Envoi en cours…', 'جارٍ الإرسال…');
       showStatus('Envoi de votre demande en cours…', 'جارٍ إرسال طلبك…');
+      const controller = new AbortController();
+      let deadline;
+      const timeout = new Promise((_, reject) => {
+        deadline = window.setTimeout(() => {
+          controller.abort();
+          reject(new DOMException('Submission timeout', 'TimeoutError'));
+        }, 30000);
+      });
       try {
-        const response = await fetch(form.action, {
-          method: 'POST',
-          headers: { Accept: 'application/json' },
-          body: payload,
-        });
-        const result = await response.json().catch(() => null);
+        // The deadline covers both the response headers and JSON body parsing.
+        const [response, result] = await Promise.race([
+          (async () => {
+            const response = await fetch(form.action, {
+              method: 'POST',
+              headers: { Accept: 'application/json' },
+              body: payload,
+              signal: controller.signal,
+            });
+            const result = await response.json().catch(() => null);
+            return [response, result];
+          })(),
+          timeout,
+        ]);
         // Formspree returns a JSON acknowledgement; never follow its next URL.
-        const confirmed = result && (typeof result.next === 'string' || result.ok === true);
-        if (!response.ok || !confirmed || result.error || result.errors?.length) {
+        const confirmed = result && typeof result === 'object' && !Array.isArray(result) && ((typeof result.next === 'string' && result.next.length > 0) || result.ok === true);
+        if (!response.ok || !confirmed || result.error ||
+            (result.errors && (!Array.isArray(result.errors) || result.errors.length))) {
           const invalidFields = (Array.isArray(result?.errors) ? result.errors : [])
             .map((error) => form.elements.namedItem(error.field))
             .filter((field) => fields.includes(field));
           invalidFields.forEach((field) => { field.setAttribute('aria-invalid', 'true'); });
           if (response.status === 429) {
             showStatus(
-              'Veuillez patienter quelques instants avant de réessayer. Votre demande est conservée.',
-              'يرجى الانتظار قليلًا قبل المحاولة مجددًا. تم الاحتفاظ بطلبك.',
+              'Veuillez patienter quelques instants avant de réessayer. Votre texte reste dans ce formulaire.',
+              'يرجى الانتظار قليلًا قبل المحاولة مجددًا. يبقى نصك في هذا النموذج.',
             );
           } else if (invalidFields.length) {
             showStatus(
-              'Vérifiez les champs indiqués et réessayez. Votre demande est conservée.',
-              'تحقق من الحقول المحددة وحاول مجددًا. تم الاحتفاظ بطلبك.',
+              'Vérifiez les champs indiqués et réessayez. Votre texte reste dans ce formulaire.',
+              'تحقق من الحقول المحددة وحاول مجددًا. يبقى نصك في هذا النموذج.',
             );
           } else {
             showStatus(
-              'Votre demande n’a pas pu être confirmée. Réessayez ou contactez-nous par email ou téléphone. Votre demande est conservée.',
-              'تعذّر تأكيد استلام طلبك. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. تم الاحتفاظ بطلبك.',
+              'Votre demande n’a pas pu être confirmée. Réessayez ou contactez-nous par email ou téléphone. Votre texte reste dans ce formulaire.',
+              'تعذّر تأكيد استلام طلبك. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. يبقى نصك في هذا النموذج.',
             );
           }
           return;
@@ -433,10 +533,11 @@
         showStatus('Votre demande a bien été reçue. Merci.', 'تم استلام طلبك بنجاح. شكرًا لك.');
       } catch {
         showStatus(
-          'Connexion indisponible. Réessayez ou contactez-nous par email ou téléphone. Votre demande est conservée.',
-          'الاتصال غير متاح. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. تم الاحتفاظ بطلبك.',
+          'La réception de votre demande n’a pas pu être confirmée. Réessayez ou contactez-nous par email ou téléphone. Votre texte reste dans ce formulaire.',
+          'تعذّر تأكيد استلام طلبك. حاول مجددًا أو تواصل معنا عبر البريد أو الهاتف. يبقى نصك في هذا النموذج.',
         );
       } finally {
+        window.clearTimeout(deadline);
         pending = false;
         button.disabled = false;
         fields.forEach((field) => { field.disabled = false; });
@@ -449,6 +550,7 @@
           renderVerification();
         } else {
           try {
+            awaitingVerification();
             window.turnstile.reset(widgetId);
           } catch {
             verificationFailed();
@@ -464,4 +566,24 @@
   });
 
   applyLanguage();
+  document.documentElement.classList.add('js');
+
+  // Observe once; filtering changes visibility immediately and never animates layout.
+  try {
+    if ('IntersectionObserver' in window) {
+      const seen = new WeakSet();
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(({ target, isIntersecting }) => {
+          if (!isIntersecting || target.hidden || seen.has(target)) return;
+          seen.add(target);
+          observer.unobserve(target);
+          const siblings = target.matches('[data-project]')
+            ? [...target.parentElement.querySelectorAll('[data-project]:not([hidden])')] : [];
+          const stagger = siblings.length ? Math.min((siblings.indexOf(target) % 3) * 60, 180) : 0;
+          enter(target, siblings.length ? 450 : 600, stagger);
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.section-heading, .studio-copy, .studio-visual, .film-copy, .film-visual, .page-content > h1, .page-content > .page-intro, [data-project]').forEach((element) => observer.observe(element));
+    }
+  } catch { /* A failed observer leaves every section visible. */ }
 })();
