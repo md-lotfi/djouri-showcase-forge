@@ -10,24 +10,99 @@
   const motionEasing = 'cubic-bezier(.22, 1, .36, 1)';
   const entranceAnimations = new Set();
 
-  // Content is visible by default. Animations never gate rendering or interaction.
-  function enter(element, duration = 600, delay = 0, rise = 18) {
+  const preparedReveals = new Set();
+  const preparedImages = new Set();
+
+  function trackEntrance(animation) {
+    entranceAnimations.add(animation);
+    animation.finished.then(
+      () => entranceAnimations.delete(animation),
+      () => entranceAnimations.delete(animation),
+    );
+    return animation;
+  }
+
+  function finishEntrances(within = document) {
+    entranceAnimations.forEach((animation) => {
+      if (within.contains(animation.effect?.target)) {
+        animation.cancel();
+        entranceAnimations.delete(animation);
+      }
+    });
+    preparedImages.forEach((element) => {
+      if (within.contains(element)) {
+        element.removeAttribute('data-image-pending');
+        preparedImages.delete(element);
+      }
+    });
+    preparedReveals.forEach((element) => {
+      if (within.contains(element)) {
+        element.removeAttribute('data-reveal-pending');
+        preparedReveals.delete(element);
+      }
+    });
+  }
+
+  // Fade only freshly loaded lightbox surfaces, never already-painted page content.
+  function enter(element, duration = 250) {
     if (motionPreference.matches || !element.animate) return;
     try {
-      const animation = element.animate(
-        [{ opacity: 0, transform: `translateY(${rise}px)` },
-          { opacity: 1, transform: 'translateY(0)' }],
-        { duration, delay, easing: motionEasing, fill: 'backwards' },
-      );
-      entranceAnimations.add(animation);
-      animation.finished.then(() => entranceAnimations.delete(animation), () => entranceAnimations.delete(animation));
-    } catch { /* Unsupported animation leaves the content visible. */ }
+      trackEntrance(element.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration, easing: motionEasing,
+      }));
+    } catch { /* Content remains visible if animations are unsupported. */ }
   }
+
+  function revealMask(element, duration = 750, delay = 0, rise = 0, bottomUp = false) {
+    if (motionPreference.matches || !element.animate) return;
+    trackEntrance(element.animate([
+      { clipPath: bottomUp ? 'inset(100% 0 0 0)' : 'inset(0 0 100% 0)', transform: `translateY(${rise}px)` },
+      { clipPath: 'inset(0 0 0 0)', transform: 'translateY(0)' },
+    ], { duration, delay, easing: motionEasing, fill: 'backwards' }));
+  }
+
+  function revealImage(surface, image, delay = 0) {
+    surface.setAttribute('data-image-pending', '');
+    preparedImages.add(surface);
+    image.loading = 'eager';
+    const clear = () => {
+      surface.removeAttribute('data-image-pending');
+      preparedImages.delete(surface);
+    };
+    // A slow or failed image must never leave a permanent mask or block focus.
+    const deadline = window.setTimeout(clear, 1500);
+    Promise.resolve().then(() => image.decode()).then(() => {
+      if (!preparedImages.has(surface) || motionPreference.matches) return;
+      revealMask(surface, 750, delay, 0, true);
+      if (image.animate && CSS.supports('scale', '1.04')) {
+        trackEntrance(image.animate([{ scale: '1.04' }, { scale: '1' }], {
+          duration: 750, delay, easing: motionEasing, fill: 'backwards',
+        }));
+      }
+    }).catch(() => {}).finally(() => {
+      window.clearTimeout(deadline);
+      clear();
+    });
+  }
+
   motionPreference.addEventListener('change', () => {
     if (motionPreference.matches) {
-      entranceAnimations.forEach((animation) => animation.cancel());
-      entranceAnimations.clear();
+      finishEntrances();
+      document.documentElement.classList.remove('motion-boot');
     }
+  });
+  // Keyboard focus and anchors never wait behind a reveal mask.
+  document.addEventListener('focusin', (event) => {
+    const target = event.target.closest('[data-project], [data-reveal-pending], .hero-copy');
+    if (target) finishEntrances(target);
+  });
+  function anchorTarget() {
+    try { return document.getElementById(decodeURIComponent(location.hash.slice(1))); }
+    catch { return null; }
+  }
+  window.addEventListener('hashchange', () => {
+    const target = anchorTarget();
+    if (target) finishEntrances(target);
   });
   const text = (fr, ar) => (language === 'ar' ? ar : fr);
 
@@ -45,7 +120,7 @@
 
   const menuButton = document.querySelector('.mobile-menu');
   const navigation = document.querySelector('.main-nav');
-  let menuOpen = false;
+  let menuOpen = menuButton.getAttribute('aria-expanded') === 'true';
 
   function updateMenu() {
     navigation.classList.toggle('is-open', menuOpen);
@@ -58,6 +133,8 @@
   }
 
   function applyLanguage() {
+    window.djouriOpening?.languageObserver?.disconnect();
+    if (document.documentElement.lang !== language) finishEntrances();
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.querySelectorAll('[data-fr][data-ar]').forEach((element) => {
@@ -138,97 +215,262 @@
     }
   });
 
+  // Translation is ready before any opening animation starts.
+  applyLanguage();
+  if (window.djouriOpening) window.djouriOpening.ready = true;
+
   const hero = document.querySelector('.hero');
   if (hero) {
     const slides = [...hero.querySelectorAll('.hero-slide')];
     const dots = [...hero.querySelectorAll('[data-slide]')];
     const caption = hero.querySelector('.hero-caption');
     const pauseButton = hero.querySelector('[data-pause-carousel]');
-    const reducedMotion = motionPreference;
+    const progressBar = hero.querySelector('.hero-progress > span');
+    const decoded = new Map();
     let current = 0;
-    let paused = reducedMotion.matches;
+    let desired = 0;
+    let revision = 0;
+    let paused = motionPreference.matches;
+    let ready = false;
     let timer;
+    let startedAt = null;
+    let remaining = 8000;
     let camera;
+    let progress;
+    let transition;
+    let automaticPending = false;
 
-    function startCamera() {
-      camera?.cancel();
-      camera = null;
-      if (reducedMotion.matches || !slides[current].animate) return;
-      try {
-        camera = slides[current].animate(
-          [{ transform: 'scale(1.035)' }, { transform: 'scale(1)' }],
-          { duration: 8000, easing: motionEasing, fill: 'forwards' },
-        );
-        if (paused || document.hidden) camera.pause();
-      } catch { /* A static hero remains usable. */ }
+    function decodeSlide(index) {
+      if (decoded.has(index)) return decoded.get(index);
+      const slide = slides[index];
+      slide.loading = 'eager';
+      const promise = Promise.resolve().then(() => slide.decode()).then(() => {
+        if (!slide.naturalWidth) throw new Error('Image unavailable');
+        return slide;
+      }).catch((error) => {
+        decoded.delete(index);
+        throw error;
+      });
+      decoded.set(index, promise);
+      return promise;
     }
 
-    function showSlide(index) {
-      current = (index + slides.length) % slides.length;
-      slides.forEach((slide, i) => {
-        slide.classList.toggle('visible', i === current);
-        slide.setAttribute('aria-hidden', String(i !== current));
-      });
+    function stopClock() {
+      window.clearTimeout(timer);
+      if (startedAt !== null) {
+        remaining = Math.max(0, remaining - (performance.now() - startedAt));
+        startedAt = null;
+      }
+      progress?.pause();
+    }
+
+    function startCamera(from = getComputedStyle(slides[current]).transform) {
+      camera?.cancel();
+      camera = null;
+      if (motionPreference.matches || !slides[current].animate) return;
+      try {
+        camera = slides[current].animate([
+          { transform: from === 'none' ? 'scale(1)' : from },
+          { transform: 'scale(1)' },
+        ], { duration: 8000, easing: motionEasing, fill: 'forwards' });
+        if (paused || document.hidden) camera.pause();
+      } catch { slides[current].style.transform = ''; }
+    }
+
+    function freezeCamera() {
+      // Preserve the outgoing frame until the incoming image completely covers it.
+      if (camera) slides[current].style.transform = getComputedStyle(slides[current]).transform;
+      camera?.cancel();
+      camera = null;
+    }
+
+    function resetCycle() {
+      stopClock();
+      remaining = 8000;
+      progress?.cancel();
+      progress = null;
+      if (!motionPreference.matches && progressBar?.animate) {
+        try {
+          progress = progressBar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], {
+            duration: 8000, easing: 'linear', fill: 'both',
+          });
+          progress.pause();
+        } catch { /* Playback remains available without a progress animation. */ }
+      }
+    }
+
+    function updatePlayback() {
+      stopClock();
+      pauseButton.setAttribute('aria-pressed', String(paused));
+      pauseButton.disabled = motionPreference.matches;
+      setTranslatedLabel(pauseButton,
+        paused ? 'Reprendre le carrousel' : 'Mettre en pause',
+        paused ? 'تشغيل العرض' : 'إيقاف العرض');
+      if (motionPreference.matches) {
+        camera?.cancel();
+        camera = null;
+        slides.forEach((slide) => { slide.style.transform = ''; });
+        progress?.cancel();
+        progress = null;
+      }
+      if (paused || motionPreference.matches || document.hidden || !ready) {
+        camera?.pause();
+        return;
+      }
+      if (camera?.playState === 'paused') camera.play();
+      if (!progress && progressBar?.animate) {
+        try {
+          progress = progressBar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 8000, easing: 'linear', fill: 'both' });
+          progress.currentTime = 8000 - remaining;
+        } catch { /* Progress is decorative. */ }
+      }
+      if (remaining > 0 && !automaticPending) progress?.play();
+      if (automaticPending) return;
+      startedAt = performance.now();
+      timer = window.setTimeout(() => {
+        stopClock();
+        requestSlide(current + 1, true);
+      }, remaining);
+    }
+
+    function settleTransition() {
+      if (!transition) return;
+      const { animation, outgoing } = transition;
+      transition = null;
+      slides[current].style.opacity = '1';
+      animation?.cancel();
+      outgoing.classList.remove('visible');
+      outgoing.style.opacity = '';
+      outgoing.style.zIndex = '';
+      outgoing.style.transform = '';
+      slides[current].style.zIndex = '1';
+    }
+
+    function updateSelection() {
+      slides.forEach((slide, i) => slide.setAttribute('aria-hidden', String(i !== current)));
       dots.forEach((dot, i) => {
         dot.classList.toggle('active', i === current);
         dot.setAttribute('aria-pressed', String(i === current));
       });
       hero.querySelector('.slide-number').textContent = String(current + 1).padStart(2, '0');
-      setTranslatedText(
-        caption,
-        current === 0 ? 'Résidence contemporaine' : slides[current].getAttribute('data-alt-fr'),
-        current === 0 ? 'إقامة معاصرة' : slides[current].getAttribute('data-alt-ar'),
-      );
-      startCamera();
+      setTranslatedText(caption, slides[current].dataset.altFr, slides[current].dataset.altAr);
     }
 
-    function updatePlayback() {
-      window.clearInterval(timer);
-      if (reducedMotion.matches) {
-        camera?.cancel();
-        camera = null;
-      } else if (camera) {
-        if (paused || document.hidden) camera.pause();
-        else camera.play();
-      } else if (!paused && !document.hidden) {
+    async function requestSlide(index, automatic = false) {
+      desired = (index + slides.length) % slides.length;
+      const target = desired;
+      const request = ++revision;
+      automaticPending = automatic;
+      try {
+        await decodeSlide(target);
+        if (request !== revision) return;
+        if (automatic && (paused || document.hidden || motionPreference.matches)) {
+          automaticPending = false;
+          remaining = 0;
+          return;
+        }
+        automaticPending = false;
+        if (target === current) {
+          if (!ready) {
+            ready = true;
+            startCamera();
+            resetCycle();
+          }
+          updatePlayback();
+          return;
+        }
+        settleTransition();
+        stopClock();
+        freezeCamera();
+        const outgoing = slides[current];
+        const incoming = slides[target];
+        outgoing.style.zIndex = '1';
+        outgoing.style.opacity = '1';
+        incoming.style.zIndex = '2';
+        incoming.style.opacity = '0';
+        incoming.style.transform = motionPreference.matches ? '' : 'scale(1.045)';
+        incoming.classList.add('visible');
+        current = target;
+        ready = true;
+        finishEntrances(caption);
+        updateSelection();
+        if (!motionPreference.matches && incoming.animate) {
+          try {
+            const animation = incoming.animate([{ opacity: 0 }, { opacity: 1 }], {
+              duration: 850, easing: motionEasing, fill: 'both',
+            });
+            const active = { animation, outgoing };
+            transition = active;
+            animation.finished.then(() => {
+              if (transition === active) settleTransition();
+            }, () => {});
+            revealMask(caption, 220);
+          } catch {
+            if (!transition) transition = { outgoing };
+            settleTransition();
+          }
+        } else {
+          transition = { outgoing };
+          settleTransition();
+        }
         startCamera();
-      }
-      pauseButton.setAttribute('aria-pressed', String(paused));
-      pauseButton.disabled = reducedMotion.matches;
-      setTranslatedLabel(
-        pauseButton,
-        paused ? 'Reprendre le carrousel' : 'Mettre en pause',
-        paused ? 'تشغيل العرض' : 'إيقاف العرض',
-      );
-      if (!paused && !reducedMotion.matches && !document.hidden) {
-        timer = window.setInterval(() => showSlide(current + 1), 8000);
+        resetCycle();
+        updatePlayback();
+        // Warm only the next original slide, after the first image has rendered.
+        decodeSlide((current + 1) % slides.length).catch(() => {});
+      } catch {
+        if (request !== revision) return;
+        automaticPending = false;
+        desired = current;
+        resetCycle();
+        updatePlayback();
       }
     }
 
-    dots.forEach((dot) => {
-      dot.addEventListener('click', () => {
-        showSlide(Number(dot.dataset.slide));
-        updatePlayback();
-      });
-    });
+    dots.forEach((dot) => dot.addEventListener('click', () => requestSlide(Number(dot.dataset.slide))));
     hero.querySelectorAll('[data-slide-step]').forEach((button) => {
-      button.addEventListener('click', () => {
-        showSlide(current + Number(button.dataset.slideStep));
-        updatePlayback();
-      });
+      button.addEventListener('click', () => requestSlide(desired + Number(button.dataset.slideStep)));
     });
     pauseButton.addEventListener('click', () => {
       paused = !paused;
       updatePlayback();
     });
-    reducedMotion.addEventListener('change', () => {
-      if (reducedMotion.matches) paused = true;
+    motionPreference.addEventListener('change', () => {
+      if (motionPreference.matches) {
+        paused = true;
+        revision++;
+        desired = current;
+        automaticPending = false;
+        settleTransition();
+      }
       updatePlayback();
     });
     document.addEventListener('visibilitychange', updatePlayback);
-    showSlide(0);
+
+    // Transfer the prepared camera frame before removing the bootstrap CSS state.
+    slides[0].style.transform = getComputedStyle(slides[0]).transform;
+    const opening = window.djouriOpening;
+    if (opening?.active && performance.now() < opening.deadline && !motionPreference.matches) {
+      try {
+        hero.classList.add('hero-opening');
+        hero.querySelectorAll('[data-hero-reveal]').forEach((element, i) => revealMask(element, 750, i * 60, 16));
+      } catch { finishEntrances(hero); }
+    }
+    updateSelection();
     updatePlayback();
-    hero.querySelectorAll('.hero-copy > *').forEach((element, i) => enter(element, 550, i * 120, 16));
+    decodeSlide(0).then(() => {
+      if (current !== 0 || revision !== 0) return;
+      ready = true;
+      startCamera();
+      resetCycle();
+      updatePlayback();
+      decodeSlide(1).catch(() => {});
+    }).catch(() => { /* Text and controls remain usable if the first image fails. */ });
+  }
+  document.documentElement.classList.remove('motion-boot');
+  if (window.djouriOpening) {
+    window.clearTimeout(window.djouriOpening.timer);
+    window.djouriOpening.active = false;
   }
 
   const projects = [...document.querySelectorAll('[data-project]')];
@@ -565,25 +807,68 @@
     button.disabled = false;
   });
 
-  applyLanguage();
   document.documentElement.classList.add('js');
 
-  // Observe once; filtering changes visibility immediately and never animates layout.
+  // Seed only offscreen surfaces. An already-painted heading or card is never hidden.
   try {
-    if ('IntersectionObserver' in window) {
-      const seen = new WeakSet();
+    if ('IntersectionObserver' in window && !motionPreference.matches) {
+      const revealTargets = new Map();
       const observer = new IntersectionObserver((entries) => {
-        entries.forEach(({ target, isIntersecting }) => {
-          if (!isIntersecting || target.hidden || seen.has(target)) return;
-          seen.add(target);
-          observer.unobserve(target);
-          const siblings = target.matches('[data-project]')
-            ? [...target.parentElement.querySelectorAll('[data-project]:not([hidden])')] : [];
-          const stagger = siblings.length ? Math.min((siblings.indexOf(target) % 3) * 60, 180) : 0;
-          enter(target, siblings.length ? 450 : 600, stagger);
+        entries.forEach(({ target: container, isIntersecting }) => {
+          if (!isIntersecting || container.hidden) return;
+          observer.unobserve(container);
+          revealTargets.get(container)?.forEach((target) => {
+            if (target.hidden || !preparedReveals.has(target)) return;
+            const project = target.matches('[data-project]');
+            const siblings = project ? [...target.parentElement.querySelectorAll('[data-project]:not([hidden])')] : [];
+            const stagger = project ? Math.min((siblings.indexOf(target) % 3) * 60, 180) : 0;
+            try {
+              if (project) {
+                revealImage(target.querySelector('.project-image'), target.querySelector('img'), stagger);
+                revealMask(target.querySelector('.project-label'), 600, stagger + 60, 8);
+              } else if (target.matches('img')) {
+                revealImage(target, target);
+              } else {
+                revealMask(target, 650, 0, 12);
+                target.closest('.section-heading')?.classList.add('is-revealed');
+              }
+            } catch { finishEntrances(target); }
+            target.removeAttribute('data-reveal-pending');
+            preparedReveals.delete(target);
+          });
         });
       }, { threshold: 0.08 });
-      document.querySelectorAll('.section-heading, .studio-copy, .studio-visual, .film-copy, .film-visual, .page-content > h1, .page-content > .page-intro, [data-project]').forEach((element) => observer.observe(element));
+      // Observe unmasked containers: a fully clipped target has an empty intersection.
+      const warmTargets = new Map();
+      const warmer = new IntersectionObserver((entries) => {
+        entries.forEach(({ target: container, isIntersecting }) => {
+          if (!isIntersecting || container.hidden) return;
+          const image = warmTargets.get(container);
+          if (image) image.loading = 'eager';
+          warmer.unobserve(container);
+        });
+      }, { rootMargin: '600px 0px' });
+      const anchor = anchorTarget();
+      const candidates = [...document.querySelectorAll('.section-heading h2, .section-heading .eyebrow, .studio-copy h2, .studio-visual img, .film-copy h2, [data-project]')]
+        .filter((element) => element.getBoundingClientRect().top >= window.innerHeight + 64 && !anchor?.contains(element));
+      candidates.forEach((element) => {
+        const container = element.matches('[data-project]') ? element : element.parentElement;
+        if (!revealTargets.has(container)) {
+          revealTargets.set(container, new Set());
+          observer.observe(container);
+        }
+        revealTargets.get(container).add(element);
+        element.setAttribute('data-reveal-pending', '');
+        preparedReveals.add(element);
+      });
+      const warmNearby = () => candidates.filter((element) => element.matches('img, [data-project]')).forEach((element) => {
+        const container = element.matches('[data-project]') ? element : element.parentElement;
+        warmTargets.set(container, element.matches('img') ? element : element.querySelector('img'));
+        warmer.observe(container);
+      });
+      const firstImage = hero?.querySelector('.hero-slide');
+      if (firstImage) Promise.resolve().then(() => firstImage.decode()).then(warmNearby, warmNearby);
+      else warmNearby();
     }
-  } catch { /* A failed observer leaves every section visible. */ }
+  } catch { finishEntrances(); }
 })();

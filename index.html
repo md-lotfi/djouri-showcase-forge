@@ -3,6 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script data-motion-bootstrap>
+    (() => {
+      const root = document.documentElement;
+      const language = new URLSearchParams(location.search).get('lang') === 'ar' ? 'ar' : 'fr';
+      root.lang = language;
+      root.dir = language === 'ar' ? 'rtl' : 'ltr';
+      const active = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+      root.classList.add('js');
+      if (active) root.classList.add('motion-boot');
+      window.djouriOpening = { active, ready: false, deadline: performance.now() + 800 };
+      if (language === 'ar') {
+        const translate = (node) => {
+          if (node.nodeType !== 1) node = node.parentElement;
+          if (!node) return;
+          [node, ...node.querySelectorAll('[data-ar], [data-alt-ar], [data-aria-label-ar], [data-placeholder-ar], [data-content-ar], [data-title-ar], [data-language]')].forEach((element) => {
+            if (element.hasAttribute('data-language')) {
+              const selected = element.getAttribute('data-language') === 'ar';
+              element.classList.toggle('active', selected);
+              element.setAttribute('aria-pressed', String(selected));
+            }
+            const value = element.getAttribute('data-ar');
+            if (value !== null && element.textContent !== value) element.textContent = value;
+            ['alt', 'aria-label', 'placeholder', 'content', 'title'].forEach((attribute) => {
+              const translated = element.getAttribute('data-' + attribute + '-ar');
+              if (translated !== null && element.getAttribute(attribute) !== translated) element.setAttribute(attribute, translated);
+            });
+          });
+        };
+        const observer = new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach(translate)));
+        observer.observe(root, { childList: true, subtree: true });
+        window.djouriOpening.languageObserver = observer;
+      }
+      window.djouriOpening.timer = setTimeout(() => {
+        root.classList.remove('motion-boot');
+        window.djouriOpening.active = false;
+      }, 800);
+      // Keep the mobile header stable and its menu usable even if the shared script stalls.
+      const fallbackMenu = (open) => {
+        const button = document.querySelector('.mobile-menu');
+        document.querySelector('.main-nav')?.classList.toggle('is-open', open);
+        button?.setAttribute('aria-expanded', String(open));
+        button?.setAttribute('aria-label', language === 'ar'
+          ? (open ? 'إغلاق القائمة' : 'فتح القائمة') : (open ? 'Fermer le menu' : 'Ouvrir le menu'));
+      };
+      document.addEventListener('click', (event) => {
+        if (window.djouriOpening.ready) return;
+        const button = event.target.closest('.mobile-menu');
+        if (button) fallbackMenu(button.getAttribute('aria-expanded') !== 'true');
+        const link = event.target.closest('[data-site-link]');
+        if (link) {
+          const href = link.getAttribute('href');
+          const hash = href.includes('#') ? '#' + href.split('#')[1] : '';
+          link.setAttribute('href', href.split(/[?#]/)[0] + '?lang=' + language + hash);
+          fallbackMenu(false);
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (!window.djouriOpening.ready && event.key === 'Escape') fallbackMenu(false);
+      });
+    })();
+  </script>
   <title data-fr="Architecture &amp; design intérieur — DJOURI DESIGNE" data-ar="العمارة والتصميم الداخلي — DJOURI DESIGNE">Architecture &amp; design intérieur — DJOURI DESIGNE</title>
   <meta name="description" content="DJOURI DESIGNE : projets d’architecture, espaces de vie et perspectives animées. Découvrez notre atelier et parlez-nous de votre projet." data-content-fr="DJOURI DESIGNE : projets d’architecture, espaces de vie et perspectives animées. Découvrez notre atelier et parlez-nous de votre projet." data-content-ar="ديجوري ديزاين: مشاريع معمارية ومساحات معيشة ومناظير متحركة. اكتشف مكتبنا وحدثنا عن مشروعك.">
   <meta property="og:site_name" content="DJOURI DESIGNE">
@@ -60,10 +121,10 @@
         </div>
         <div class="hero-shade"></div>
         <div class="hero-copy">
-          <span data-fr="ARCHITECTURE · INTÉRIEUR · CONCEPTION" data-ar="عمارة · تصميم داخلي · ابتكار" class="eyebrow">ARCHITECTURE · INTÉRIEUR · CONCEPTION</span>
-          <h1>DJOURI DESIGNE<span data-fr="ATELIER D’ARCHITECTURE" data-ar="مكتب الهندسة المعمارية">ATELIER D’ARCHITECTURE</span></h1>
-          <p data-fr="Résidence contemporaine" data-ar="إقامة معاصرة" class="hero-caption">Résidence contemporaine</p>
-          <a class="hero-link" data-site-link href="./projets/?lang=fr"><span data-fr="Explorer nos projets" data-ar="اكتشف مشاريعنا">Explorer nos projets</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+          <span data-hero-reveal data-fr="ARCHITECTURE · INTÉRIEUR · CONCEPTION" data-ar="عمارة · تصميم داخلي · ابتكار" class="eyebrow">ARCHITECTURE · INTÉRIEUR · CONCEPTION</span>
+          <h1 data-hero-reveal>DJOURI DESIGNE<span data-fr="ATELIER D’ARCHITECTURE" data-ar="مكتب الهندسة المعمارية">ATELIER D’ARCHITECTURE</span></h1>
+          <p data-hero-reveal data-fr="Résidence contemporaine" data-ar="إقامة معاصرة" class="hero-caption">Résidence contemporaine</p>
+          <a data-hero-reveal class="hero-link" data-site-link href="./projets/?lang=fr"><span data-fr="Explorer nos projets" data-ar="اكتشف مشاريعنا">Explorer nos projets</span><svg class="icon icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
         </div>
         <div class="hero-bottom">
           <span class="slide-counter"><span class="slide-number">01</span><span> / 03</span></span>
@@ -78,6 +139,7 @@
             <button type="button" class="icon-button" aria-label="Diapositive suivante" data-aria-label-fr="Diapositive suivante" data-aria-label-ar="الشريحة التالية" data-slide-step="1"><svg class="icon icon-right" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14"/></svg></button>
           </div>
         </div>
+        <span class="hero-progress" aria-hidden="true"><span></span></span>
       </section>
       <section class="portfolio-section section-wrap">
         <div class="section-heading">

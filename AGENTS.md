@@ -25,3 +25,6 @@
 - Keep bilingual privacy notices beside both forms and Contact’s expandable `#confidentialite` section linked from every footer. Do not invent retention periods or legal assurances.
 - Canonicals, sharing URLs, sitemap and robots use `https://djouri.raystate.com/`. Sharing uses the original 1280 × 720 residence poster. Initial French HTML metadata is translated at runtime; document the crawler limitation.
 - Record release verification truthfully in `release-checks.md`. Owner-controlled Formspree inbox/notification delivery and real mobile Safari cannot be certified by local mocks.
+
+- Prepare hero masks before paint with the shared inline bootstrap and its 800 ms fail-open deadline. Never animate already-painted page content back to opacity zero; initialize only offscreen scroll masks. Keep the bootstrap identical in all four heads.
+- Decode carousel candidates before committing them. Keep the outgoing image opaque and its camera frame frozen until the new image covers it. Discard stale decode results; Pause/background suspension must preserve remaining time and the progress line.
