@@ -28,3 +28,4 @@
 
 - Prepare hero masks before paint with the shared inline bootstrap and its 800 ms fail-open deadline. Never animate already-painted page content back to opacity zero; initialize only offscreen scroll masks. Keep the bootstrap identical in all four heads.
 - Decode carousel candidates before committing them. Keep the outgoing image opaque and its camera frame frozen until the new image covers it. Discard stale decode results; Pause/background suspension must preserve remaining time and the progress line.
+- Keep the shared CSS/JavaScript `v` query stamp consistent across all four pages; bump it when the bootstrap or shared assets change to prevent stale asset combinations.

@@ -86,3 +86,5 @@ Both forms explain the information submitted to Formspree and the Turnstile chec
 Canonical URLs, `og:url`, the four-page sitemap and robots sitemap reference use **https://djouri.raystate.com/**. Sharing uses the original **1280 × 720** residence-film poster. Each page has a distinct bilingual description. Initial documents and crawler previews are French; Arabic metadata is updated by JavaScript from `?lang=ar`. These are not separate Arabic HTML documents, and crawlers that do not run JavaScript will not see the Arabic metadata.
 
 See [release-checks.md](release-checks.md) for the verification evidence and remaining owner/device checks. Publish with an ordinary commit and push; never rewrite published Lovable history.
+
+Shared CSS and JavaScript links carry `?v=cinema-20261008` to avoid mixing the new opening bootstrap with cached assets from the previous release. When updating these files or the bootstrap, change the version consistently in all four pages. This is static cache versioning, not a build step.

@@ -37,7 +37,7 @@ The previous fade-and-rise implementation could hide content after it had alread
 - Camera contrast was sampled at the start, middle and end on all three slides, both languages and five widths (90 background captures). The identified worst case was rechecked with the strengthened shade and measured **4.97:1**. The stronger black shade also improves the other previously passing contexts. Text remains fully opaque; the foreground stays above every crossfade layer.
 - A stalled automatic image decode retained completed progress across background/foreground changes and resumed the expected next slide once ready.
 
-The cinematic follow-up is locally verified. Publishing uses an ordinary commit/push; the final deployed-file comparison is recorded in the completion message and `/tmp/djouri-cinema-deployment.json` for this run.
+Shared CSS/JavaScript URLs use the consistent `cinema-20261008` cache stamp in all four pages. The cinematic follow-up is locally verified. Publishing uses an ordinary commit/push; the final deployed-file comparison is recorded in the completion message and `/tmp/djouri-cinema-deployment.json` for this run.
 
 ## Publishing and owner sign-off
 
