@@ -1139,6 +1139,33 @@ html { scrollbar-gutter: stable; }
 }
 }
 
+.website-qr-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  align-items: center;
+  gap: 48px;
+  border-top: 1px solid var(--border);
+}
+.website-qr-copy { min-width: 0; }
+.website-qr-copy .eyebrow { color: var(--bronze); margin-bottom: 18px; }
+.website-qr-copy p { max-width: 52ch; margin-top: 18px; color: var(--muted-foreground); line-height: 1.8; }
+.website-qr-url { display: block; width: fit-content; margin-top: 20px; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+.website-qr-download { display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-top: 28px; padding: 14px 20px; background: var(--foreground); color: var(--background); }
+.website-qr-copy small { display: block; margin-top: 12px; color: var(--muted-foreground); line-height: 1.7; }
+.website-qr-card { margin: 0; padding: 24px; border: 1px solid var(--border); background: #fff; text-align: center; }
+.website-qr-card > a { display: block; }
+.website-qr-card img { width: 296px; height: auto; margin-inline: auto; }
+.website-qr-card figcaption strong { display: block; font-size: 26px; font-weight: 600; color: #000; }
+.website-qr-card figcaption span { display: block; margin-top: 8px; font-size: 12px; letter-spacing: 2px; color: var(--muted-foreground); }
+@media (hover: hover) and (pointer: fine) {
+  .website-qr-download:hover { background: #333; }
+}
+@media (max-width: 640px) {
+  .website-qr-section { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .website-qr-card { width: min(100%, 360px); justify-self: center; padding: 8px; }
+  .website-qr-download { width: 100%; }
+}
+
 .location-section {
   background: var(--muted);
   border-top: 1px solid var(--border);

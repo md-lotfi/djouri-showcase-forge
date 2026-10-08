@@ -50,3 +50,9 @@ The following remain owner/device checks; local simulations cannot establish the
 3. Review hero text against each image on real screens and test on the owner’s mobile connection.
 
 Production sign-off remains pending these owner/device checks. Social destinations and expanded business/case-study sections remain deferred.
+
+## Contact QR addition
+
+- Added a prominent Contact QR section with French/Arabic labels and a native download link. The local SVG and high-resolution 1480 × 1840 PNG both independently decoded to `https://djouri.raystate.com/`. The downloaded image includes “SCAN ME”, the studio name and address.
+- Chrome checks passed at 320, 390, 640, 900 and 1440 CSS px in both languages: no horizontal overflow, QR width 250–296 px, translated labels and correct PNG content. Fresh screenshots were inspected at 390 and 1440 px. Shared asset cache stamps were updated consistently on all four pages.
+- The native browser download produced a byte-for-byte match of the local PNG. Live language switching updated the QR labels; the image and download remained available with JavaScript disabled. No scanning service or browser QR library was added to the site.

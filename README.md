@@ -87,4 +87,6 @@ Canonical URLs, `og:url`, the four-page sitemap and robots sitemap reference use
 
 See [release-checks.md](release-checks.md) for the verification evidence and remaining owner/device checks. Publish with an ordinary commit and push; never rewrite published Lovable history.
 
-Shared CSS and JavaScript links carry `?v=cinema-20261008` to avoid mixing the new opening bootstrap with cached assets from the previous release. When updating these files or the bootstrap, change the version consistently in all four pages. This is static cache versioning, not a build step.
+Shared CSS and JavaScript links carry `?v=qr-20261008` to avoid mixing the new opening bootstrap with cached assets from the previous release. When updating these files or the bootstrap, change the version consistently in all four pages. This is static cache versioning, not a build step.
+
+The Contact page includes a large, bilingual QR card linking to `https://djouri.raystate.com/`. Its local SVG preserves sharp edges and a four-module quiet zone; the download is a 1480 × 1840 PNG with “SCAN ME”, the studio name and website address. No external QR service or runtime dependency is used. If the canonical domain changes, regenerate both QR assets and verify their decoded destination.
